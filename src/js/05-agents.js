@@ -1,8 +1,9 @@
-// ---------- 05-agents: the eight rivals and the brains that drive them ----------
-// Every rival is an agent with three layers:
+// ---------- 05-agents: the eight rivals, their shot policy, game plans and insults ----------
+// Every rival is an agent that runs entirely in the page, with no model calls:
 //   1. a persona (skills, appetite for risk, how badly they tilt, how well they read wind)
-//   2. a local policy that picks each shot by sampling outcomes for candidate targets (instant, works offline)
-//   3. a language-model "brain" with its own memory that sets strategy for the hole, makes Wolf calls and talks back
+//   2. a shot policy that samples outcomes for candidate targets and picks the one that suits their nerve
+//   3. a game plan re-made every hole from the state of the match and their mood (attack, steady, safe; Wolf leanings)
+//   4. a deep bag of stock insults, dealt without repeats until the bag runs dry
 const NPCS = [
   { id: 'chad', name: 'Chad Bunkerman', short: 'Chad', color: '#ff7a45', bio: 'Crypto evangelist with a monster drive and a 40-putt habit. Calls everyone champ.', voice: 'loud, overconfident, finance-bro slang, never admits fault', skills: { drive: 8, approach: 5, chip: 3, sand: 4, putt: 3 }, aggr: .9, tilt: .8, savvy: .4,
     lines: { needle: ['Tough break, champ. Want me to invoice you for that lesson?', 'That shot just got delisted.', 'I\u2019ve seen better swings on a playground.'], grudge: ['Okay champ, don\u2019t get used to it.', 'Beginner\u2019s luck is still luck, I guess.', 'Fine. That was adequate.'], brag: ['Absolute rocket. Somebody call air traffic control.', 'That\u2019s what peak performance looks like, people.', 'I\u2019d say sorry, but I\u2019m not.'], sulk: ['The wind moved. Everyone saw the wind move.', 'These greens are clearly broken.', 'My caddie app gave me the wrong number.'] } },
@@ -106,42 +107,105 @@ function npcWolfChoice(wolf, wolfIdx, players, balls, h) {
   return (mine + (wolf.aggr - .6) * 50 + lean > bq + 12) ? -1 : bi;
 }
 
-// ---------- language-model brains ----------
-const AI = {
-  sample: null, enabled: true, denied: false, coolUntil: 0, calls: 0,
-  async init() { try { if (typeof window !== 'undefined' && window.claude && window.claude.use) this.sample = await window.claude.use('sample'); } catch (e) { this.sample = null; } },
-  ok() { return this.enabled && !!this.sample && !this.denied && Date.now() > this.coolUntil; },
-  status() { return !this.sample ? 'offline' : this.denied ? 'declined' : !this.enabled ? 'off' : Date.now() < this.coolUntil ? 'resting' : 'live'; },
-  fail(e) { const c = e && e.code; if (c === 'not_granted') this.denied = true; else this.coolUntil = Date.now() + (c === 'rate_limited' ? 120000 : 25000); },
-  async json(prompt, opts) { if (!this.ok()) return null; this.calls++; try { return await this.sample.json(prompt, { modelTier: 'quick', cache: false, ...opts }); } catch (e) { this.fail(e); return null; } },
+// ---------- more stock insults ----------
+// needle: the human hit a bad one. grudge: the human hit a good one. brag / sulk: their own good and bad shots.
+// tee: said on the tee. win / lose: parting shot after finishing ahead of, or behind, the human.
+const MORE_LINES = {
+  chad: {
+    needle: ['That\u2019s a write-off, champ. Tax purposes only.', 'Your swing\u2019s in a bear market.', 'I\u2019d short that shot if I could.', 'You\u2019re diversifying into the trees, I see.', 'Bro. Just, bro.'],
+    grudge: ['Okay, okay. Somebody ate their protein.', 'I taught you that. Indirectly.', 'Decent. I\u2019d still fade you long term.', 'Lucky bounce. Markets correct, champ.'],
+    brag: ['Bang. That\u2019s generational wealth off the tee.', 'Scale that. You can\u2019t. I can.', 'Somebody clip that for my investors.', 'Nuked it. Nobody is surprised.'],
+    sulk: ['That was a strategic loss.', 'I\u2019m pivoting. That shot was a beta.', 'This club is defective. I\u2019m suing.', 'Not my fault. Supply chain issue.'],
+    tee: ['Stand back, champ. This one\u2019s going to the moon.', 'Let\u2019s make this interesting. Loser buys the round.', 'I\u2019m feeling bullish.', 'Watch and learn. Mostly watch.', 'Driver. Always driver.'],
+    win: ['Scoreboard, champ. Read it and weep into your spreadsheet.', 'Winners win. I don\u2019t make the rules, I just dominate them.', 'Good effort. I\u2019ll send you my course on mindset.'],
+    lose: ['Doesn\u2019t count. I was on a call.', 'I let you have that. Networking.', 'Small sample size, champ. Run it back.'],
+  },
+  peggy: {
+    needle: ['Never mind, dear. Some people take up bowls.', 'I believe that one is in a different parish.', 'How adventurous of you.', 'You do find the most interesting parts of the course.', 'Oh, were you aiming? I couldn\u2019t tell.'],
+    grudge: ['How nice. Was that on purpose?', 'Well, I never. And I usually have.', 'Splendid. Do try to look less surprised.', 'One good shot does not a golfer make, but still.'],
+    brag: ['I shan\u2019t apologise for competence.', 'That\u2019s how it was done in my day. And today, evidently.', 'Do keep up, dear.', 'Dead straight. I do find it restful.'],
+    sulk: ['Most irregular.', 'I shall be writing to the committee.', 'The ball is clearly faulty.', 'We shall say no more about it.'],
+    tee: ['Shall we? Some of us have bridge at four.', 'Do hit away, dear. I\u2019ll catch you up on the green.', 'Lovely hole, this. I\u2019ve birdied it since before you were born.', 'Mind the water, dear. It minds you.', 'No rush. Well. A little rush.'],
+    win: ['Thank you for the game, dear. Most restful.', 'Never mind. You hit it ever so far, in several directions.', 'Same time next week? I do enjoy an easy afternoon.'],
+    lose: ['Well played, dear. I shall be having words with my putter.', 'Enjoy it. I have a long memory and a tee time on Thursday.', 'How lovely for you. Truly. Lovely.'],
+  },
+  gary: {
+    needle: ['I didn\u2019t see that. Neither did you. Agreed?', 'Drop one by my ball, I won\u2019t tell.', 'Rough luck. I\u2019ve got a foot wedge you can borrow.', 'That\u2019s a lost ball. Unless it isn\u2019t. Up to you.', 'We\u2019ll call it winter rules.'],
+    grudge: ['Hang on, what ball are you playing?', 'You\u2019ve been having lessons. That\u2019s basically cheating.', 'Good. Annoyingly good. Noted in pencil.', 'Lovely strike. Shame about the scorecard I\u2019m keeping.'],
+    brag: ['That\u2019s a four. Don\u2019t count, just trust me.', 'Inside the leather. Any leather.', 'All skill. No witnesses, but all skill.', 'Pick it up, that\u2019s good. I said so.'],
+    sulk: ['I wasn\u2019t ready. That was a rehearsal.', 'Improved my lie? I never. It improved itself.', 'Putting that down as a three.', 'Ground under repair, that. Definitely.'],
+    tee: ['Usual stakes? I\u2019ll keep score.', 'First tee mulligans are in the rules. Somewhere.', 'Gimmes inside six feet today, yeah?', 'I\u2019ll go off the forward tees. Bad knee.', 'Nobody\u2019s counting practice swings, are they?'],
+    win: ['By my card, I win. By any other card, don\u2019t look at any other card.', 'A fair result, fairly recorded, by me.', 'Unlucky. You owe me a tenner. We said a tenner.'],
+    lose: ['I make it a tie, actually. Let me recount.', 'There\u2019ll be a stewards\u2019 enquiry.', 'You win on the day. I win on appeal.'],
+  },
+  margot: {
+    needle: ['Amateur.', 'I see the problem. It\u2019s all of it.', 'That is not a shot. That is a cry for help.', 'Tempo. You have none.', 'Fascinating. Like watching a car alarm.'],
+    grudge: ['Fine. Once.', 'Statistically, that had to happen eventually.', 'Not terrible.', 'I\u2019ll allow it.'],
+    brag: ['Flag. Hunted.', 'Routine.', 'I could do that with a rental set.', 'That\u2019s the standard. Meet it.'],
+    sulk: ['Recalibrating.', 'That was the wind. I don\u2019t miss.', 'Delete that.', 'A rare data point. Ignore it.'],
+    tee: ['Try to keep up.', 'I\u2019ve played this hole in my sleep. I shot 3.', 'Hit it. Find it. Hit it again. Simple.', 'Quiet on the tee.', 'This won\u2019t take long.'],
+    win: ['As expected.', 'Thank you for the practice round.', 'You lost to the better player. There\u2019s no shame in it. Some, but not much.'],
+    lose: ['Enjoy it. It will not happen twice.', 'I\u2019ll be on the range until dark. You should worry.', 'Noted. Filed. Remembered.'],
+  },
+  tom: {
+    needle: ['That\u2019ll need a search party.', 'I\u2019ll be fixing that divot till Thursday.', 'The course always wins.', 'I\u2019ve seen worse. Not today, but I have.', 'Nature is healing. Not your swing, though.'],
+    grudge: ['Aye. Fine shot. Shame about what comes next.', 'The grass was kind to you there.', 'Don\u2019t smile. It tempts fate.', 'I\u2019ll admit it. Quietly.'],
+    brag: ['Forty years I\u2019ve known that slope.', 'The course owed me that one.', 'A wee bit of joy. I don\u2019t trust it.', 'I raked it, I escaped it.'],
+    sulk: ['Of course it did.', 'The moles are laughing at me.', 'I should have stayed in the shed.', 'Hope is a young man\u2019s game.'],
+    tee: ['It\u2019ll rain by the turn. It always does.', 'Mind my fairways.', 'Somebody\u2019s going in that bunker. I just raked it.', 'Another hole. Another disappointment.', 'After you. I\u2019m in no hurry to suffer.'],
+    win: ['I won. It brings me no joy. Nothing does.', 'The course and I had an understanding today.', 'Well. That\u2019s that. Back to the shed.'],
+    lose: ['Beaten on my own course. Fitting.', 'I expected nothing and I\u2019m still let down.', 'Well played. Replace your divots on the way out.'],
+  },
+  bunny: {
+    needle: ['Chat is going wild. Not in a good way.', 'That\u2019s a carousel post: swipe for disaster.', 'It\u2019s giving beginner.', 'We love a learning moment, guys.', 'Hashtag pray for them.'],
+    grudge: ['Ugh, that was actually content.', 'Okay, main character energy. Briefly.', 'Not you stealing my thumbnail.', 'Fine, I\u2019ll tag you.'],
+    brag: ['Link in bio for how I did that.', 'That\u2019s going viral. I can feel it.', 'Ring light off, putter on.', 'Slay. Literally slay.'],
+    sulk: ['No. Delete. We reshoot.', 'My followers did not see that.', 'The algorithm made me do it.', 'That\u2019s between me and my close friends list.'],
+    tee: ['Hi guys, welcome back to the channel.', 'Wait, let me get my good side.', 'Everyone say hi to my opponent. They\u2019re about to lose.', 'Quick one for the story, then I\u2019ll hit.', 'Outfit\u2019s a ten. Swing\u2019s a maybe.'],
+    win: ['And that\u2019s a wrap, guys. Winner winner.', 'Thanks for being in my video. You were great as the loser.', 'GG. Posting this immediately.'],
+    lose: ['We\u2019re not uploading this one.', 'It\u2019s fine. Losing is very relatable.', 'Okay but my outfit won.'],
+  },
+  rev: {
+    needle: ['Lost, like a sheep. A very wayward sheep.', 'There is a time to reap and a time to reload.', 'Wide is the path that leads to the rough.', 'I\u2019ve heard confessions less painful than that.', 'Fear not. Though I would, from there.'],
+    grudge: ['Hallelujah. Let\u2019s not make a habit of it.', 'Verily, that was struck.', 'The meek may inherit the earth, but you got the green.', 'I see you\u2019ve been saying your prayers.'],
+    brag: ['My cup runneth over. So does this one, with my ball.', 'Ask, and it shall be given.', 'A righteous strike.', 'I walk through the valley of the bunkers and fear no evil.'],
+    sulk: ['Heavens to Betsy.', 'I am being tested.', 'That one\u2019s going in Sunday\u2019s sermon.', 'Flipping Nora. Forgive me.'],
+    tee: ['Let us play.', 'May your ball fly straight. Mine will.', 'Peace be with you. And a slice also.', 'Thou shalt not covet thy neighbour\u2019s drive.', 'A brisk pace, please. Evensong is at six.'],
+    win: ['The Lord works in mysterious ways. I work in fairways.', 'Go in peace. And perhaps take a lesson.', 'Blessed is the winner. Which is me. Humbly.'],
+    lose: ['Pride goeth before a fall. Do watch your step.', 'I forgive you. Eventually.', 'A humbling. I shall reflect on it, at length, from the pulpit.'],
+  },
+  kev: {
+    needle: ['Skipped like a scratched CD.', 'That\u2019s a remix nobody asked for.', 'Lost that one in the mix, mate.', 'Bit pitchy.', 'Wrong genre. That was jazz.'],
+    grudge: ['Tune! Absolute tune.', 'That slaps. Annoyingly.', 'Rewind! Selecta!', 'Fair play. Drinks are still on you.'],
+    brag: ['Crowd goes wild. I am the crowd.', 'Hands in the air for that one.', 'Out of the sand like it\u2019s the main stage.', 'That\u2019s the drop.'],
+    sulk: ['Feedback on the mic. My bad.', 'Buffering.', 'That was the support act.', 'Skip. Next song.'],
+    tee: ['Speaker on. Vibes on. Let\u2019s go.', 'Anyone want a cold one before we tee off?', 'This hole\u2019s a banger.', 'No plan. Never had one. Fore!', 'I\u2019ll hit when the beat drops.'],
+    win: ['Winner stays on the decks. Good game, mate.', 'Vibes beat talent. Science.', 'I wasn\u2019t even keeping score. Did I win? Mint.'],
+    lose: ['You won the golf. I won the afternoon.', 'Good set, mate. Encore next week?', 'Lost? Didn\u2019t notice. Great tunes though.'],
+  },
 };
-class Brain {
-  constructor(npc) { this.npc = npc; this.memory = []; this.said = []; }
-  note(s) { this.memory.push(s); if (this.memory.length > 8) this.memory.shift(); }
-  async think(ctx) {
-    const n = this.npc;
-    const prompt = `You are the mind of one computer-controlled golfer in Bad Lies, a cheeky, irreverent golf video game. Stay fully in character.
+for (const n of NPCS) for (const [k, v] of Object.entries(MORE_LINES[n.id])) n.lines[k] = (n.lines[k] || []).concat(v);
 
-Character: ${n.name}. ${n.bio}
-Voice: ${n.voice}.
-Your skills out of 10: driving ${n.skills.drive}, approach ${n.skills.approach}, chipping ${n.skills.chip}, sand ${n.skills.sand}, putting ${n.skills.putt}.
-Your temperament: risk appetite ${Math.round(n.aggr * 10)}/10.
-
-The human player is ${ctx.human}. Format: ${ctx.format}. ${ctx.rules}
-Standings: ${ctx.standings}
-${ctx.moment}
-Your memory of this round, oldest first: ${this.memory.length ? this.memory.join(' | ') : 'nothing yet'}
-Your history with ${ctx.human}: ${ctx.history}
-Lines you have already used (do not repeat or rephrase them): ${this.said.length ? this.said.join(' | ') : 'none'}
-
-Decide how you will play, then say one line of banter. The line is at most 16 words, sounds like you, and needles ${ctx.human} or reacts to the round. Keep it playful: no slurs, no swearing stronger than "bloody", nothing about anyone's body, gender, race, age or religion.
-
-Reply with only this JSON: {"strategy":"attack" or "steady" or "safe","wolf":"lone" or "partner","line":"..."}`;
-    const r = await AI.json(prompt);
-    if (!r || typeof r.line !== 'string') return null;
-    const line = r.line.replace(/^["\u201c]|["\u201d]$/g, '').slice(0, 140);
-    this.said.push(line); if (this.said.length > 6) this.said.shift();
-    return { strategy: ['attack', 'steady', 'safe'].includes(r.strategy) ? r.strategy : 'steady', wolf: r.wolf === 'lone' ? 'lone' : 'partner', line };
-  }
+// Deal a line the rival hasn't used yet; reshuffle that pile once it is empty.
+function cannedLine(npc, kind, rng = Math.random) {
+  const used = npc._used = npc._used || {}, pool = npc.lines[kind];
+  let left = pool.filter(l => !(used[kind] || []).includes(l));
+  if (!left.length) { used[kind] = []; left = pool; }
+  const l = pick(left, rng); (used[kind] = used[kind] || []).push(l);
+  return l;
 }
-function cannedLine(npc, kind, rng = Math.random) { return pick(npc.lines[kind], rng); }
+// The rival's plan for the next hole. lead = how far ahead they are (holes or points), left = holes still to play.
+function planHole(pl, lead, left, points) {
+  const big = points ? left * 1.5 : left * .6;
+  if (lead < 0 && -lead >= big) { pl.plan = 'attack'; pl.wolfLean = 'lone'; }
+  else if (lead > 0 && lead >= big) { pl.plan = 'safe'; pl.wolfLean = 'partner'; }
+  else if ((pl.tiltNow || 0) > .5) { pl.plan = 'attack'; pl.wolfLean = 'lone'; }
+  else { pl.plan = 'steady'; pl.wolfLean = null; }
+  return pl.plan;
+}
+
+// Claude is used only by the Course Forger (screenshot survey and described holes), never by the rivals.
+const AI = {
+  sample: null, denied: false,
+  async init() { try { if (typeof window !== 'undefined' && window.claude && window.claude.use) this.sample = await window.claude.use('sample'); } catch (e) { this.sample = null; } },
+};

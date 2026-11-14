@@ -112,7 +112,7 @@ function chirp(pl, line, ai) { chirpQ.push({ pl, line, ai }); if (chirpQ.length 
 function nextChirp() {
   const el = $('chirp'), q = chirpQ.shift();
   if (!q) { el.classList.remove('show'); chirpTimer = 0; return; }
-  el.innerHTML = `<b><i class="dot" style="background:${q.pl.color}"></i>${esc(q.pl.short)}${q.ai ? '<span class="ai">thinking out loud</span>' : ''}</b>${esc(q.line)}`;
+  el.innerHTML = `<b><i class="dot" style="background:${q.pl.color}"></i>${esc(q.pl.short)}</b>${esc(q.line)}`;
   el.classList.add('show'); chirpTimer = setTimeout(nextChirp, 2400 + q.line.length * 28);
 }
 function paintMeter() {
@@ -241,7 +241,6 @@ function sassFor(res, ball, h) {
 function heckle(res) {
   const R = G.R, npcs = R.players.filter(p => !p.human); if (!npcs.length) return;
   const bad = res.penalty || res.lie === 'sand' || res.lie === 'trees' || res.duff || res.pickedUp, good = (res.holed && res.before > 3) || (res.tapin && !res.putt);
-  if (bad) npcs.forEach(p => p.brain.note(`the human hit one ${res.event === 'water' ? 'into the water' : res.event === 'ob' ? 'out of bounds' : 'into trouble'} on hole ${R.hi + 1}`));
   if ((bad || good) && Math.random() < .5) { const p = pick(npcs); chirp(p, cannedLine(p, bad ? 'needle' : 'grudge')); }
 }
 function animate(ball, res, npc, name) {
@@ -264,7 +263,6 @@ async function npcTurn(ball, pl, run) {
   await animate(ball, res, true, pl.short); live();
   G.npcBall = null; G.npcName = null;
   const good = (res.holed && res.before > 2.5) || (res.tapin && !res.putt), bad = res.penalty || res.pickedUp || (res.putt && !res.holed && !res.tapin && res.before < 2.5);
-  if (res.penalty) pl.brain.note(`I found ${res.event === 'water' ? 'the water' : 'trouble'} on hole ${R.hi + 1}`);
   if (!G.skip && (good || bad) && Math.random() < .45) chirp(pl, cannedLine(pl, good ? 'brag' : 'sulk'));
   if (!G.skip) { await sleep(res.holed || res.tapin ? 380 : 180); live(); }
   updateHud();
@@ -284,20 +282,16 @@ async function wolfCall(run) {
   setWolf(R, choice); updateHud();
 }
 
-// ---------- the brains ----------
-function brainsThink(run, closing) {
-  const R = G.R; if (!AI.ok()) return [];
-  const me = R.players[0], npcs = R.players.filter(p => !p.human), k = closing ? 1 : Math.ceil(npcs.length / 2), chosen = [];
-  for (let j = 0; j < k; j++) { const p = npcs[(R.hi * k + j) % npcs.length]; if (!chosen.includes(p)) chosen.push(p); }
-  const toPar = i => { const s = R.strokes[i].reduce((a, b) => a + b, 0), par = R.results.reduce((a, r) => a + r.par, 0), d = s - par; return d === 0 ? 'level' : d > 0 ? '+' + d : String(d); };
-  const standings = `${statusText(R)}. Strokes to par so far: ${R.players.map((p, i) => `${p.human ? me.name : p.short} ${toPar(i)}`).join(', ')}.`;
-  return chosen.map(p => {
-    const i = R.players.indexOf(p), rec = (G.hooks.h2h && G.hooks.h2h(p.id)) || { w: 0, l: 0 }, last = R.results[R.results.length - 1], h = closing ? null : R.holes[R.hi % R.holes.length];
-    const moment = closing ? `The round has just finished. Final result for the human: ${closing}. Give your parting shot.`
-      : `Next up: hole ${R.hi + 1} of ${R.total}, "${h.name}", par ${h.par}, ${h.yards} yards${h.waters.length ? ', water in play' : ''}${h.bunkers.length > 2 ? ', heavily bunkered' : ''}.${R.fmt === 'wolf' ? (R.hi % 4 === i ? ' You are the Wolf on this hole.' : ` ${R.hi % 4 === 0 ? me.name : R.players[R.hi % 4].short} is the Wolf.`) : ''}${R.teams ? (i === 1 ? ` You are ${me.name}'s partner, so needle them affectionately.` : ` Your partner is ${R.players[i === 2 ? 3 : 2].short}.`) : ''}${last ? ` Last hole you made ${SCORE_NAME(last.strokes[i] - last.par).toLowerCase()} and ${me.name} made ${SCORE_NAME(last.strokes[0] - last.par).toLowerCase()}.` : ' This is the first tee.'}`;
-    return p.brain.think({ human: me.name, format: FORMATS[R.fmt].name, rules: FORMATS[R.fmt].rules, standings, moment, history: rec.w + rec.l ? `${rec.w + rec.l} previous rounds, the human won ${rec.w}, you finished ahead ${rec.l} times` : 'first time playing together' })
-      .then(r => { if (G.run !== run || !r) return null; if (!closing) { p.plan = r.strategy; p.wolfLean = r.wolf; chirp(p, r.line, true); } return { p, line: r.line }; }).catch(() => null);
+// ---------- game plans and tee-box chat ----------
+function rivalsPlan() {
+  const R = G.R, left = R.total - R.hi, points = !MATCH_FORMATS.includes(R.fmt), npcs = [];
+  R.players.forEach((p, i) => {
+    if (p.human) return; npcs.push(p);
+    const lead = points ? R.pts[i] - Math.max(...R.pts.filter((v, j) => j !== i)) : (R.teams && i === 1 ? R.up : -R.up);
+    planHole(p, lead, left, points);
   });
+  const talkers = shuffle(npcs).slice(0, R.hi === 0 ? 2 : Math.random() < .65 ? 1 : 0);
+  talkers.forEach(p => chirp(p, cannedLine(p, 'tee')));
 }
 
 // ---------- hole and round flow ----------
@@ -313,7 +307,7 @@ async function playHole(run) {
   if (R.fmt === 'foursomes') extra = R.hi % 2 === 0 ? `You tee off. ${esc(R.players[1].short)} plays the next one.` : `${esc(R.players[1].short)} tees off. You get whatever is left.`;
   await modal(`<p class="kicker">Hole ${R.hi + 1} of ${R.total}</p><h3>${esc(h.name)}</h3><p><b>Par ${h.par}, ${h.yards} yards.</b> Wind ${R.wind.mph} mph.</p>${h.blurb ? `<p>${esc(h.blurb)}</p>` : ''}${extra ? `<p class="note">${extra}</p>` : ''}<button class="btn pink big" data-val="go">Tee it up</button>`);
   live();
-  brainsThink(run);
+  rivalsPlan();
   for (;;) {
     if (needsWolfCall(R)) await wolfCall(run);
     const b = nextBall(R); if (!b) break;
@@ -322,7 +316,6 @@ async function playHole(run) {
     else await npcTurn(b, pl, run);
   }
   const out = finishHole(R);
-  R.players.forEach((p, i) => { if (!p.human) p.brain.note(`hole ${out.hole}: I made ${SCORE_NAME(out.strokes[i] - out.par).toLowerCase()}, the human made ${SCORE_NAME(out.strokes[0] - out.par).toLowerCase()}`); });
   if (G.hooks.holeDone) G.hooks.holeDone(out);
   updateHud(); G.skip = false; $('skip').classList.add('hidden'); $('shotinfo').innerHTML = '';
   const pointsy = !MATCH_FORMATS.includes(R.fmt);

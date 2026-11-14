@@ -67,14 +67,11 @@ function pageGolfer() {
 function pageSetup() {
   const f = FORMATS[U.fmt], need = f.n - 1, all = [...BUILTIN.map(c => ({ id: c.id, name: c.name, tag: c.tag })), ...courses.map(c => ({ id: c.id, name: c.name, tag: `${c.holes.length} hole${c.holes.length === 1 ? '' : 's'}, forged by you.` }))];
   const who = U.fmt === 'stableford' ? 'Pick three to play alongside. The other five are out on the course too.' : f.teams ? 'Pick three. The first one is your partner, so choose with your head.' : `Pick ${need === 1 ? 'your opponent' : need + ' opponents'}.`;
-  const st = AI.status();
   return `<h3 class="sec">The game</h3><div class="grid2">${Object.entries(FORMATS).map(([id, x]) => `<button class="pick" data-act="fmt" data-id="${id}" aria-pressed="${U.fmt === id}"><h3>${x.name}</h3><span class="note">${x.blurb}</span></button>`).join('')}</div>
   <h3 class="sec">How long have you got?</h3><div class="rowwrap">${[3, 6, 9].map(n => `<button class="chip" data-act="len" data-id="${n}" aria-pressed="${U.total === n}" style="padding-left:14px">${n} holes</button>`).join('')}</div>
   <h3 class="sec">The course</h3><div class="grid2">${all.map(c => `<button class="pick" data-act="course" data-id="${esc(c.id)}" aria-pressed="${U.course === c.id}"><h3>${esc(c.name)}</h3><span class="note">${esc(c.tag)}</span></button>`).join('')}</div>
   <h3 class="sec">The company</h3><p class="note">${who} Leave it short and I’ll fill the gaps with whoever is loitering by the first tee.</p>
   <div class="rowwrap">${NPCS.map(n => { const i = U.rivals.indexOf(n.id); return `<button class="chip" data-act="rival" data-id="${n.id}" aria-pressed="${i >= 0}"><i class="dot" style="background:${n.color}"></i>${esc(n.short)}${i === 0 && f.teams ? ' (partner)' : ''}</button>`; }).join('')}</div>
-  <div class="card"><div class="rowwrap" style="justify-content:space-between"><b>Rival brains</b><button class="btn small ${save.ai && st !== 'offline' && st !== 'declined' ? 'yellow' : ''}" data-act="ai" ${st === 'offline' || st === 'declined' ? 'disabled' : ''}>${st === 'offline' ? 'Unavailable here' : st === 'declined' ? 'Declined' : save.ai ? 'On' : 'Off'}</button></div>
-  <p class="note">${st === 'offline' ? 'Each rival still plays to their own personality, they just stick to their stock insults.' : 'Each rival has their own Claude-powered brain that sets their strategy and trash talk hole by hole. It uses a little of your Claude usage; the first call asks your permission.'}</p></div>
   <div class="sticky-cta"><button class="btn pink big" data-act="tee">Tee off</button></div>`;
 }
 function pageLocker() {
@@ -87,9 +84,7 @@ function pageLocker() {
   <div class="rowwrap"><button class="btn" data-act="go" data-to="golfer">Change golfer</button><button class="btn pink" data-act="play">Play a round</button></div>`;
 }
 function pageRivals() {
-  const st = AI.status();
-  return `<p class="lede">Eight regulars, eight separate agents. Each one picks their own shots, tilts in their own way, and holds their own grudges against you.</p>
-  <p class="note">Brains are ${st === 'live' ? 'live: each rival thinks for themselves between holes.' : st === 'offline' ? 'offline in this view, so they play on instinct and stock insults.' : st + '.'}</p>
+  return `<p class="lede">Eight regulars, eight separate agents. Each one picks their own shots, re-plans every hole from the state of the match, tilts in their own way, and has plenty to say about your golf.</p>
   <div class="grid2">${NPCS.map(n => { const r = save.h2h[n.id]; return `<div class="card"><div class="who">${badge(n.name, n.color)}<span><h3 style="font-size:1.3rem">${esc(n.name)}</h3><span class="note">${r && r.w + r.l ? (r.w > r.l ? `You lead ${r.w}–${r.l}` : r.w < r.l ? `They lead ${r.l}–${r.w}` : `Level at ${r.w}–${r.l}`) : 'You haven’t met yet'}</span></span></div><p style="margin-top:8px">${esc(n.bio)}</p>${skillBars(n.skills)}<p class="note" style="margin-top:8px">Risk appetite ${Math.round(n.aggr * 10)}/10. Tilts ${n.tilt > .6 ? 'badly' : n.tilt > .3 ? 'a bit' : 'almost never'}. Reads the wind ${n.savvy > .8 ? 'like a book' : n.savvy > .45 ? 'well enough' : 'like a horoscope'}.</p></div>`; }).join('')}</div>`;
 }
 function pageResult() {
@@ -112,15 +107,14 @@ function teeOff() {
   const f = FORMATS[U.fmt], g = golfer(), C = getCourse(U.course, courses);
   let ids = U.rivals.slice(0, f.n - 1);
   for (const n of shuffle(NPCS)) if (ids.length < f.n - 1 && !ids.includes(n.id)) ids.push(n.id);
-  const mk = n => ({ ...n, skills: { ...n.skills }, brain: new Brain(n) });
+  const mk = n => ({ ...n, skills: { ...n.skills }, _used: {} });
   const me = { id: 'me', name: g.name, short: 'You', human: true, color: '#ffffff', skills: levels(mySkills()) };
   const R = newRound({ format: U.fmt, holes: C.holes, total: U.total, theme: C.theme, courseName: C.name, seed: Date.now() >>> 0, players: [me, ...ids.map(id => mk(NPCS.find(n => n.id === id)))], field: U.fmt === 'stableford' ? NPCS.filter(n => !ids.includes(n.id)).map(mk) : [] });
-  AI.enabled = save.ai; G.hooks.seenHint = save.stats.holes > 0;
+  G.hooks.seenHint = save.stats.holes > 0;
   show('play'); playRound(R);
 }
 G.hooks.xp = (cat, amt) => { const sk = mySkills(), before = sk[cat].lvl; addXp(sk, cat, amt); G.xp[cat] = (G.xp[cat] || 0) + amt; saveLocal(); if (sk[cat].lvl > before) { G.R.players[0].skills[cat] = sk[cat].lvl; (G.ups = G.ups || []).push(cat); return sk[cat].lvl; } return null; };
 G.hooks.holeDone = () => { save.stats.holes++; persist(); };
-G.hooks.h2h = id => save.h2h[id];
 G.onEnd = (R, run) => {
   const st = standings(R), won = st.won && !st.tied, gains = { ...G.xp }, ups = (G.ups || []).slice(); G.ups = [];
   save.stats.rounds++; if (won) { save.stats.wins++; for (const k of SKILLS) { const b = mySkills()[k].lvl; addXp(mySkills(), k, 25); if (mySkills()[k].lvl > b) ups.push(k); } }
@@ -130,12 +124,9 @@ G.onEnd = (R, run) => {
     if (d > 0) r.w++; else if (d < 0) r.l++;
   });
   persist();
-  const rival = R.players[R.teams ? 2 : 1], q = { line: cannedLine(rival, won ? 'grudge' : st.tied ? 'sulk' : 'brag'), by: rival.name };
+  const rival = R.players[R.teams ? 2 : 1], q = { line: cannedLine(rival, won ? 'lose' : st.tied ? 'sulk' : 'win'), by: rival.name };
   lastRound = { R, st, gains, ups, quote: q };
   nav.length = 0; go('result');
-  const verdict = st.match ? st.text : `finished ${st.rank} of ${st.rows.length}${won ? ' and won' : ''}`;
-  const calls = brainsThink(run, verdict);
-  if (calls[0]) calls[0].then(r => { if (r && lastRound && lastRound.R === R) { q.line = r.line; q.by = r.p.name; if ($('quote')) { $('quote').textContent = r.line; $('quote-by').textContent = r.p.name; } } });
 };
 
 // ---------- Course Forger ----------
@@ -232,7 +223,6 @@ const ACTS = {
   len(d) { U.total = +d.id; renderPage(true); },
   course(d) { U.course = d.id; renderPage(true); },
   rival(d) { const i = U.rivals.indexOf(d.id), need = FORMATS[U.fmt].n - 1; if (i >= 0) U.rivals.splice(i, 1); else { U.rivals.push(d.id); if (U.rivals.length > need) U.rivals.shift(); } renderPage(true); },
-  ai() { save.ai = !save.ai; persist(); renderPage(true); },
   tee: teeOff, again: teeOff,
   async quit() { if (await modal(`<h3>Walking off?</h3><p>Your experience is safe. Your reputation is not.</p><button class="btn" data-val="no">Keep playing</button><button class="btn pink" data-val="yes">Walk off</button>`) === 'yes') { quitRound(); persist(); home(); } },
   view() { G.overview = !G.overview; $('b-view').classList.toggle('on', G.overview); const h = G.R.h; if (G.turn) aimCamera(); else if (G.overview) frame([h.tee, h.pin, ...h.path], 30, 80); },

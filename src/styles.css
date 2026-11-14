@@ -128,7 +128,6 @@ pre.code { background: #0c2416; color: #d7f0d0; padding: 12px; border-radius: 12
 #chirp.show { opacity: 1; transform: none; }
 #chirp b { display: flex; align-items: center; gap: 6px; font-size: .8rem; }
 #chirp .dot { width: 12px; height: 12px; border-width: 1.5px; }
-#chirp .ai { font-weight: 600; opacity: .6; }
 .modal { position: absolute; inset: 0; z-index: 10; background: rgba(4, 14, 8, .6); display: grid; place-items: center; padding: 16px; overflow-y: auto; }
 .sheet { width: min(460px, 100%); background: var(--card); color: var(--ink); border: 2.5px solid var(--edge); border-radius: 20px; padding: 18px; display: grid; gap: 12px; box-shadow: 0 6px 0 var(--edge); }
 .sheet h3 { font-size: 1.7rem; color: var(--turf); }

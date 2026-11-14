@@ -137,7 +137,6 @@ pre.code { background: #0c2416; color: #d7f0d0; padding: 12px; border-radius: 12
 #chirp.show { opacity: 1; transform: none; }
 #chirp b { display: flex; align-items: center; gap: 6px; font-size: .8rem; }
 #chirp .dot { width: 12px; height: 12px; border-width: 1.5px; }
-#chirp .ai { font-weight: 600; opacity: .6; }
 .modal { position: absolute; inset: 0; z-index: 10; background: rgba(4, 14, 8, .6); display: grid; place-items: center; padding: 16px; overflow-y: auto; }
 .sheet { width: min(460px, 100%); background: var(--card); color: var(--ink); border: 2.5px solid var(--edge); border-radius: 20px; padding: 18px; display: grid; gap: 12px; box-shadow: 0 6px 0 var(--edge); }
 .sheet h3 { font-size: 1.7rem; color: var(--turf); }
@@ -749,11 +748,12 @@ function addXp(sk, cat, amount) {
 }
 const levels = sk => Object.fromEntries(SKILLS.map(k => [k, sk[k].lvl]));
 
-// ---------- 05-agents: the eight rivals and the brains that drive them ----------
-// Every rival is an agent with three layers:
+// ---------- 05-agents: the eight rivals, their shot policy, game plans and insults ----------
+// Every rival is an agent that runs entirely in the page, with no model calls:
 //   1. a persona (skills, appetite for risk, how badly they tilt, how well they read wind)
-//   2. a local policy that picks each shot by sampling outcomes for candidate targets (instant, works offline)
-//   3. a language-model "brain" with its own memory that sets strategy for the hole, makes Wolf calls and talks back
+//   2. a shot policy that samples outcomes for candidate targets and picks the one that suits their nerve
+//   3. a game plan re-made every hole from the state of the match and their mood (attack, steady, safe; Wolf leanings)
+//   4. a deep bag of stock insults, dealt without repeats until the bag runs dry
 const NPCS = [
   { id: 'chad', name: 'Chad Bunkerman', short: 'Chad', color: '#ff7a45', bio: 'Crypto evangelist with a monster drive and a 40-putt habit. Calls everyone champ.', voice: 'loud, overconfident, finance-bro slang, never admits fault', skills: { drive: 8, approach: 5, chip: 3, sand: 4, putt: 3 }, aggr: .9, tilt: .8, savvy: .4,
     lines: { needle: ['Tough break, champ. Want me to invoice you for that lesson?', 'That shot just got delisted.', 'I\u2019ve seen better swings on a playground.'], grudge: ['Okay champ, don\u2019t get used to it.', 'Beginner\u2019s luck is still luck, I guess.', 'Fine. That was adequate.'], brag: ['Absolute rocket. Somebody call air traffic control.', 'That\u2019s what peak performance looks like, people.', 'I\u2019d say sorry, but I\u2019m not.'], sulk: ['The wind moved. Everyone saw the wind move.', 'These greens are clearly broken.', 'My caddie app gave me the wrong number.'] } },
@@ -857,45 +857,108 @@ function npcWolfChoice(wolf, wolfIdx, players, balls, h) {
   return (mine + (wolf.aggr - .6) * 50 + lean > bq + 12) ? -1 : bi;
 }
 
-// ---------- language-model brains ----------
-const AI = {
-  sample: null, enabled: true, denied: false, coolUntil: 0, calls: 0,
-  async init() { try { if (typeof window !== 'undefined' && window.claude && window.claude.use) this.sample = await window.claude.use('sample'); } catch (e) { this.sample = null; } },
-  ok() { return this.enabled && !!this.sample && !this.denied && Date.now() > this.coolUntil; },
-  status() { return !this.sample ? 'offline' : this.denied ? 'declined' : !this.enabled ? 'off' : Date.now() < this.coolUntil ? 'resting' : 'live'; },
-  fail(e) { const c = e && e.code; if (c === 'not_granted') this.denied = true; else this.coolUntil = Date.now() + (c === 'rate_limited' ? 120000 : 25000); },
-  async json(prompt, opts) { if (!this.ok()) return null; this.calls++; try { return await this.sample.json(prompt, { modelTier: 'quick', cache: false, ...opts }); } catch (e) { this.fail(e); return null; } },
+// ---------- more stock insults ----------
+// needle: the human hit a bad one. grudge: the human hit a good one. brag / sulk: their own good and bad shots.
+// tee: said on the tee. win / lose: parting shot after finishing ahead of, or behind, the human.
+const MORE_LINES = {
+  chad: {
+    needle: ['That\u2019s a write-off, champ. Tax purposes only.', 'Your swing\u2019s in a bear market.', 'I\u2019d short that shot if I could.', 'You\u2019re diversifying into the trees, I see.', 'Bro. Just, bro.'],
+    grudge: ['Okay, okay. Somebody ate their protein.', 'I taught you that. Indirectly.', 'Decent. I\u2019d still fade you long term.', 'Lucky bounce. Markets correct, champ.'],
+    brag: ['Bang. That\u2019s generational wealth off the tee.', 'Scale that. You can\u2019t. I can.', 'Somebody clip that for my investors.', 'Nuked it. Nobody is surprised.'],
+    sulk: ['That was a strategic loss.', 'I\u2019m pivoting. That shot was a beta.', 'This club is defective. I\u2019m suing.', 'Not my fault. Supply chain issue.'],
+    tee: ['Stand back, champ. This one\u2019s going to the moon.', 'Let\u2019s make this interesting. Loser buys the round.', 'I\u2019m feeling bullish.', 'Watch and learn. Mostly watch.', 'Driver. Always driver.'],
+    win: ['Scoreboard, champ. Read it and weep into your spreadsheet.', 'Winners win. I don\u2019t make the rules, I just dominate them.', 'Good effort. I\u2019ll send you my course on mindset.'],
+    lose: ['Doesn\u2019t count. I was on a call.', 'I let you have that. Networking.', 'Small sample size, champ. Run it back.'],
+  },
+  peggy: {
+    needle: ['Never mind, dear. Some people take up bowls.', 'I believe that one is in a different parish.', 'How adventurous of you.', 'You do find the most interesting parts of the course.', 'Oh, were you aiming? I couldn\u2019t tell.'],
+    grudge: ['How nice. Was that on purpose?', 'Well, I never. And I usually have.', 'Splendid. Do try to look less surprised.', 'One good shot does not a golfer make, but still.'],
+    brag: ['I shan\u2019t apologise for competence.', 'That\u2019s how it was done in my day. And today, evidently.', 'Do keep up, dear.', 'Dead straight. I do find it restful.'],
+    sulk: ['Most irregular.', 'I shall be writing to the committee.', 'The ball is clearly faulty.', 'We shall say no more about it.'],
+    tee: ['Shall we? Some of us have bridge at four.', 'Do hit away, dear. I\u2019ll catch you up on the green.', 'Lovely hole, this. I\u2019ve birdied it since before you were born.', 'Mind the water, dear. It minds you.', 'No rush. Well. A little rush.'],
+    win: ['Thank you for the game, dear. Most restful.', 'Never mind. You hit it ever so far, in several directions.', 'Same time next week? I do enjoy an easy afternoon.'],
+    lose: ['Well played, dear. I shall be having words with my putter.', 'Enjoy it. I have a long memory and a tee time on Thursday.', 'How lovely for you. Truly. Lovely.'],
+  },
+  gary: {
+    needle: ['I didn\u2019t see that. Neither did you. Agreed?', 'Drop one by my ball, I won\u2019t tell.', 'Rough luck. I\u2019ve got a foot wedge you can borrow.', 'That\u2019s a lost ball. Unless it isn\u2019t. Up to you.', 'We\u2019ll call it winter rules.'],
+    grudge: ['Hang on, what ball are you playing?', 'You\u2019ve been having lessons. That\u2019s basically cheating.', 'Good. Annoyingly good. Noted in pencil.', 'Lovely strike. Shame about the scorecard I\u2019m keeping.'],
+    brag: ['That\u2019s a four. Don\u2019t count, just trust me.', 'Inside the leather. Any leather.', 'All skill. No witnesses, but all skill.', 'Pick it up, that\u2019s good. I said so.'],
+    sulk: ['I wasn\u2019t ready. That was a rehearsal.', 'Improved my lie? I never. It improved itself.', 'Putting that down as a three.', 'Ground under repair, that. Definitely.'],
+    tee: ['Usual stakes? I\u2019ll keep score.', 'First tee mulligans are in the rules. Somewhere.', 'Gimmes inside six feet today, yeah?', 'I\u2019ll go off the forward tees. Bad knee.', 'Nobody\u2019s counting practice swings, are they?'],
+    win: ['By my card, I win. By any other card, don\u2019t look at any other card.', 'A fair result, fairly recorded, by me.', 'Unlucky. You owe me a tenner. We said a tenner.'],
+    lose: ['I make it a tie, actually. Let me recount.', 'There\u2019ll be a stewards\u2019 enquiry.', 'You win on the day. I win on appeal.'],
+  },
+  margot: {
+    needle: ['Amateur.', 'I see the problem. It\u2019s all of it.', 'That is not a shot. That is a cry for help.', 'Tempo. You have none.', 'Fascinating. Like watching a car alarm.'],
+    grudge: ['Fine. Once.', 'Statistically, that had to happen eventually.', 'Not terrible.', 'I\u2019ll allow it.'],
+    brag: ['Flag. Hunted.', 'Routine.', 'I could do that with a rental set.', 'That\u2019s the standard. Meet it.'],
+    sulk: ['Recalibrating.', 'That was the wind. I don\u2019t miss.', 'Delete that.', 'A rare data point. Ignore it.'],
+    tee: ['Try to keep up.', 'I\u2019ve played this hole in my sleep. I shot 3.', 'Hit it. Find it. Hit it again. Simple.', 'Quiet on the tee.', 'This won\u2019t take long.'],
+    win: ['As expected.', 'Thank you for the practice round.', 'You lost to the better player. There\u2019s no shame in it. Some, but not much.'],
+    lose: ['Enjoy it. It will not happen twice.', 'I\u2019ll be on the range until dark. You should worry.', 'Noted. Filed. Remembered.'],
+  },
+  tom: {
+    needle: ['That\u2019ll need a search party.', 'I\u2019ll be fixing that divot till Thursday.', 'The course always wins.', 'I\u2019ve seen worse. Not today, but I have.', 'Nature is healing. Not your swing, though.'],
+    grudge: ['Aye. Fine shot. Shame about what comes next.', 'The grass was kind to you there.', 'Don\u2019t smile. It tempts fate.', 'I\u2019ll admit it. Quietly.'],
+    brag: ['Forty years I\u2019ve known that slope.', 'The course owed me that one.', 'A wee bit of joy. I don\u2019t trust it.', 'I raked it, I escaped it.'],
+    sulk: ['Of course it did.', 'The moles are laughing at me.', 'I should have stayed in the shed.', 'Hope is a young man\u2019s game.'],
+    tee: ['It\u2019ll rain by the turn. It always does.', 'Mind my fairways.', 'Somebody\u2019s going in that bunker. I just raked it.', 'Another hole. Another disappointment.', 'After you. I\u2019m in no hurry to suffer.'],
+    win: ['I won. It brings me no joy. Nothing does.', 'The course and I had an understanding today.', 'Well. That\u2019s that. Back to the shed.'],
+    lose: ['Beaten on my own course. Fitting.', 'I expected nothing and I\u2019m still let down.', 'Well played. Replace your divots on the way out.'],
+  },
+  bunny: {
+    needle: ['Chat is going wild. Not in a good way.', 'That\u2019s a carousel post: swipe for disaster.', 'It\u2019s giving beginner.', 'We love a learning moment, guys.', 'Hashtag pray for them.'],
+    grudge: ['Ugh, that was actually content.', 'Okay, main character energy. Briefly.', 'Not you stealing my thumbnail.', 'Fine, I\u2019ll tag you.'],
+    brag: ['Link in bio for how I did that.', 'That\u2019s going viral. I can feel it.', 'Ring light off, putter on.', 'Slay. Literally slay.'],
+    sulk: ['No. Delete. We reshoot.', 'My followers did not see that.', 'The algorithm made me do it.', 'That\u2019s between me and my close friends list.'],
+    tee: ['Hi guys, welcome back to the channel.', 'Wait, let me get my good side.', 'Everyone say hi to my opponent. They\u2019re about to lose.', 'Quick one for the story, then I\u2019ll hit.', 'Outfit\u2019s a ten. Swing\u2019s a maybe.'],
+    win: ['And that\u2019s a wrap, guys. Winner winner.', 'Thanks for being in my video. You were great as the loser.', 'GG. Posting this immediately.'],
+    lose: ['We\u2019re not uploading this one.', 'It\u2019s fine. Losing is very relatable.', 'Okay but my outfit won.'],
+  },
+  rev: {
+    needle: ['Lost, like a sheep. A very wayward sheep.', 'There is a time to reap and a time to reload.', 'Wide is the path that leads to the rough.', 'I\u2019ve heard confessions less painful than that.', 'Fear not. Though I would, from there.'],
+    grudge: ['Hallelujah. Let\u2019s not make a habit of it.', 'Verily, that was struck.', 'The meek may inherit the earth, but you got the green.', 'I see you\u2019ve been saying your prayers.'],
+    brag: ['My cup runneth over. So does this one, with my ball.', 'Ask, and it shall be given.', 'A righteous strike.', 'I walk through the valley of the bunkers and fear no evil.'],
+    sulk: ['Heavens to Betsy.', 'I am being tested.', 'That one\u2019s going in Sunday\u2019s sermon.', 'Flipping Nora. Forgive me.'],
+    tee: ['Let us play.', 'May your ball fly straight. Mine will.', 'Peace be with you. And a slice also.', 'Thou shalt not covet thy neighbour\u2019s drive.', 'A brisk pace, please. Evensong is at six.'],
+    win: ['The Lord works in mysterious ways. I work in fairways.', 'Go in peace. And perhaps take a lesson.', 'Blessed is the winner. Which is me. Humbly.'],
+    lose: ['Pride goeth before a fall. Do watch your step.', 'I forgive you. Eventually.', 'A humbling. I shall reflect on it, at length, from the pulpit.'],
+  },
+  kev: {
+    needle: ['Skipped like a scratched CD.', 'That\u2019s a remix nobody asked for.', 'Lost that one in the mix, mate.', 'Bit pitchy.', 'Wrong genre. That was jazz.'],
+    grudge: ['Tune! Absolute tune.', 'That slaps. Annoyingly.', 'Rewind! Selecta!', 'Fair play. Drinks are still on you.'],
+    brag: ['Crowd goes wild. I am the crowd.', 'Hands in the air for that one.', 'Out of the sand like it\u2019s the main stage.', 'That\u2019s the drop.'],
+    sulk: ['Feedback on the mic. My bad.', 'Buffering.', 'That was the support act.', 'Skip. Next song.'],
+    tee: ['Speaker on. Vibes on. Let\u2019s go.', 'Anyone want a cold one before we tee off?', 'This hole\u2019s a banger.', 'No plan. Never had one. Fore!', 'I\u2019ll hit when the beat drops.'],
+    win: ['Winner stays on the decks. Good game, mate.', 'Vibes beat talent. Science.', 'I wasn\u2019t even keeping score. Did I win? Mint.'],
+    lose: ['You won the golf. I won the afternoon.', 'Good set, mate. Encore next week?', 'Lost? Didn\u2019t notice. Great tunes though.'],
+  },
 };
-class Brain {
-  constructor(npc) { this.npc = npc; this.memory = []; this.said = []; }
-  note(s) { this.memory.push(s); if (this.memory.length > 8) this.memory.shift(); }
-  async think(ctx) {
-    const n = this.npc;
-    const prompt = `You are the mind of one computer-controlled golfer in Bad Lies, a cheeky, irreverent golf video game. Stay fully in character.
+for (const n of NPCS) for (const [k, v] of Object.entries(MORE_LINES[n.id])) n.lines[k] = (n.lines[k] || []).concat(v);
 
-Character: ${n.name}. ${n.bio}
-Voice: ${n.voice}.
-Your skills out of 10: driving ${n.skills.drive}, approach ${n.skills.approach}, chipping ${n.skills.chip}, sand ${n.skills.sand}, putting ${n.skills.putt}.
-Your temperament: risk appetite ${Math.round(n.aggr * 10)}/10.
-
-The human player is ${ctx.human}. Format: ${ctx.format}. ${ctx.rules}
-Standings: ${ctx.standings}
-${ctx.moment}
-Your memory of this round, oldest first: ${this.memory.length ? this.memory.join(' | ') : 'nothing yet'}
-Your history with ${ctx.human}: ${ctx.history}
-Lines you have already used (do not repeat or rephrase them): ${this.said.length ? this.said.join(' | ') : 'none'}
-
-Decide how you will play, then say one line of banter. The line is at most 16 words, sounds like you, and needles ${ctx.human} or reacts to the round. Keep it playful: no slurs, no swearing stronger than "bloody", nothing about anyone's body, gender, race, age or religion.
-
-Reply with only this JSON: {"strategy":"attack" or "steady" or "safe","wolf":"lone" or "partner","line":"..."}`;
-    const r = await AI.json(prompt);
-    if (!r || typeof r.line !== 'string') return null;
-    const line = r.line.replace(/^["\u201c]|["\u201d]$/g, '').slice(0, 140);
-    this.said.push(line); if (this.said.length > 6) this.said.shift();
-    return { strategy: ['attack', 'steady', 'safe'].includes(r.strategy) ? r.strategy : 'steady', wolf: r.wolf === 'lone' ? 'lone' : 'partner', line };
-  }
+// Deal a line the rival hasn't used yet; reshuffle that pile once it is empty.
+function cannedLine(npc, kind, rng = Math.random) {
+  const used = npc._used = npc._used || {}, pool = npc.lines[kind];
+  let left = pool.filter(l => !(used[kind] || []).includes(l));
+  if (!left.length) { used[kind] = []; left = pool; }
+  const l = pick(left, rng); (used[kind] = used[kind] || []).push(l);
+  return l;
 }
-function cannedLine(npc, kind, rng = Math.random) { return pick(npc.lines[kind], rng); }
+// The rival's plan for the next hole. lead = how far ahead they are (holes or points), left = holes still to play.
+function planHole(pl, lead, left, points) {
+  const big = points ? left * 1.5 : left * .6;
+  if (lead < 0 && -lead >= big) { pl.plan = 'attack'; pl.wolfLean = 'lone'; }
+  else if (lead > 0 && lead >= big) { pl.plan = 'safe'; pl.wolfLean = 'partner'; }
+  else if ((pl.tiltNow || 0) > .5) { pl.plan = 'attack'; pl.wolfLean = 'lone'; }
+  else { pl.plan = 'steady'; pl.wolfLean = null; }
+  return pl.plan;
+}
+
+// Claude is used only by the Course Forger (screenshot survey and described holes), never by the rivals.
+const AI = {
+  sample: null, denied: false,
+  async init() { try { if (typeof window !== 'undefined' && window.claude && window.claude.use) this.sample = await window.claude.use('sample'); } catch (e) { this.sample = null; } },
+};
 
 // ---------- 06-round: formats, turn order, scoring. No DOM in here. ----------
 const FORMATS = {
@@ -1323,7 +1386,7 @@ function chirp(pl, line, ai) { chirpQ.push({ pl, line, ai }); if (chirpQ.length 
 function nextChirp() {
   const el = $('chirp'), q = chirpQ.shift();
   if (!q) { el.classList.remove('show'); chirpTimer = 0; return; }
-  el.innerHTML = `<b><i class="dot" style="background:${q.pl.color}"></i>${esc(q.pl.short)}${q.ai ? '<span class="ai">thinking out loud</span>' : ''}</b>${esc(q.line)}`;
+  el.innerHTML = `<b><i class="dot" style="background:${q.pl.color}"></i>${esc(q.pl.short)}</b>${esc(q.line)}`;
   el.classList.add('show'); chirpTimer = setTimeout(nextChirp, 2400 + q.line.length * 28);
 }
 function paintMeter() {
@@ -1452,7 +1515,6 @@ function sassFor(res, ball, h) {
 function heckle(res) {
   const R = G.R, npcs = R.players.filter(p => !p.human); if (!npcs.length) return;
   const bad = res.penalty || res.lie === 'sand' || res.lie === 'trees' || res.duff || res.pickedUp, good = (res.holed && res.before > 3) || (res.tapin && !res.putt);
-  if (bad) npcs.forEach(p => p.brain.note(`the human hit one ${res.event === 'water' ? 'into the water' : res.event === 'ob' ? 'out of bounds' : 'into trouble'} on hole ${R.hi + 1}`));
   if ((bad || good) && Math.random() < .5) { const p = pick(npcs); chirp(p, cannedLine(p, bad ? 'needle' : 'grudge')); }
 }
 function animate(ball, res, npc, name) {
@@ -1475,7 +1537,6 @@ async function npcTurn(ball, pl, run) {
   await animate(ball, res, true, pl.short); live();
   G.npcBall = null; G.npcName = null;
   const good = (res.holed && res.before > 2.5) || (res.tapin && !res.putt), bad = res.penalty || res.pickedUp || (res.putt && !res.holed && !res.tapin && res.before < 2.5);
-  if (res.penalty) pl.brain.note(`I found ${res.event === 'water' ? 'the water' : 'trouble'} on hole ${R.hi + 1}`);
   if (!G.skip && (good || bad) && Math.random() < .45) chirp(pl, cannedLine(pl, good ? 'brag' : 'sulk'));
   if (!G.skip) { await sleep(res.holed || res.tapin ? 380 : 180); live(); }
   updateHud();
@@ -1495,20 +1556,16 @@ async function wolfCall(run) {
   setWolf(R, choice); updateHud();
 }
 
-// ---------- the brains ----------
-function brainsThink(run, closing) {
-  const R = G.R; if (!AI.ok()) return [];
-  const me = R.players[0], npcs = R.players.filter(p => !p.human), k = closing ? 1 : Math.ceil(npcs.length / 2), chosen = [];
-  for (let j = 0; j < k; j++) { const p = npcs[(R.hi * k + j) % npcs.length]; if (!chosen.includes(p)) chosen.push(p); }
-  const toPar = i => { const s = R.strokes[i].reduce((a, b) => a + b, 0), par = R.results.reduce((a, r) => a + r.par, 0), d = s - par; return d === 0 ? 'level' : d > 0 ? '+' + d : String(d); };
-  const standings = `${statusText(R)}. Strokes to par so far: ${R.players.map((p, i) => `${p.human ? me.name : p.short} ${toPar(i)}`).join(', ')}.`;
-  return chosen.map(p => {
-    const i = R.players.indexOf(p), rec = (G.hooks.h2h && G.hooks.h2h(p.id)) || { w: 0, l: 0 }, last = R.results[R.results.length - 1], h = closing ? null : R.holes[R.hi % R.holes.length];
-    const moment = closing ? `The round has just finished. Final result for the human: ${closing}. Give your parting shot.`
-      : `Next up: hole ${R.hi + 1} of ${R.total}, "${h.name}", par ${h.par}, ${h.yards} yards${h.waters.length ? ', water in play' : ''}${h.bunkers.length > 2 ? ', heavily bunkered' : ''}.${R.fmt === 'wolf' ? (R.hi % 4 === i ? ' You are the Wolf on this hole.' : ` ${R.hi % 4 === 0 ? me.name : R.players[R.hi % 4].short} is the Wolf.`) : ''}${R.teams ? (i === 1 ? ` You are ${me.name}'s partner, so needle them affectionately.` : ` Your partner is ${R.players[i === 2 ? 3 : 2].short}.`) : ''}${last ? ` Last hole you made ${SCORE_NAME(last.strokes[i] - last.par).toLowerCase()} and ${me.name} made ${SCORE_NAME(last.strokes[0] - last.par).toLowerCase()}.` : ' This is the first tee.'}`;
-    return p.brain.think({ human: me.name, format: FORMATS[R.fmt].name, rules: FORMATS[R.fmt].rules, standings, moment, history: rec.w + rec.l ? `${rec.w + rec.l} previous rounds, the human won ${rec.w}, you finished ahead ${rec.l} times` : 'first time playing together' })
-      .then(r => { if (G.run !== run || !r) return null; if (!closing) { p.plan = r.strategy; p.wolfLean = r.wolf; chirp(p, r.line, true); } return { p, line: r.line }; }).catch(() => null);
+// ---------- game plans and tee-box chat ----------
+function rivalsPlan() {
+  const R = G.R, left = R.total - R.hi, points = !MATCH_FORMATS.includes(R.fmt), npcs = [];
+  R.players.forEach((p, i) => {
+    if (p.human) return; npcs.push(p);
+    const lead = points ? R.pts[i] - Math.max(...R.pts.filter((v, j) => j !== i)) : (R.teams && i === 1 ? R.up : -R.up);
+    planHole(p, lead, left, points);
   });
+  const talkers = shuffle(npcs).slice(0, R.hi === 0 ? 2 : Math.random() < .65 ? 1 : 0);
+  talkers.forEach(p => chirp(p, cannedLine(p, 'tee')));
 }
 
 // ---------- hole and round flow ----------
@@ -1524,7 +1581,7 @@ async function playHole(run) {
   if (R.fmt === 'foursomes') extra = R.hi % 2 === 0 ? `You tee off. ${esc(R.players[1].short)} plays the next one.` : `${esc(R.players[1].short)} tees off. You get whatever is left.`;
   await modal(`<p class="kicker">Hole ${R.hi + 1} of ${R.total}</p><h3>${esc(h.name)}</h3><p><b>Par ${h.par}, ${h.yards} yards.</b> Wind ${R.wind.mph} mph.</p>${h.blurb ? `<p>${esc(h.blurb)}</p>` : ''}${extra ? `<p class="note">${extra}</p>` : ''}<button class="btn pink big" data-val="go">Tee it up</button>`);
   live();
-  brainsThink(run);
+  rivalsPlan();
   for (;;) {
     if (needsWolfCall(R)) await wolfCall(run);
     const b = nextBall(R); if (!b) break;
@@ -1533,7 +1590,6 @@ async function playHole(run) {
     else await npcTurn(b, pl, run);
   }
   const out = finishHole(R);
-  R.players.forEach((p, i) => { if (!p.human) p.brain.note(`hole ${out.hole}: I made ${SCORE_NAME(out.strokes[i] - out.par).toLowerCase()}, the human made ${SCORE_NAME(out.strokes[0] - out.par).toLowerCase()}`); });
   if (G.hooks.holeDone) G.hooks.holeDone(out);
   updateHud(); G.skip = false; $('skip').classList.add('hidden'); $('shotinfo').innerHTML = '';
   const pointsy = !MATCH_FORMATS.includes(R.fmt);
@@ -1643,14 +1699,11 @@ function pageGolfer() {
 function pageSetup() {
   const f = FORMATS[U.fmt], need = f.n - 1, all = [...BUILTIN.map(c => ({ id: c.id, name: c.name, tag: c.tag })), ...courses.map(c => ({ id: c.id, name: c.name, tag: `${c.holes.length} hole${c.holes.length === 1 ? '' : 's'}, forged by you.` }))];
   const who = U.fmt === 'stableford' ? 'Pick three to play alongside. The other five are out on the course too.' : f.teams ? 'Pick three. The first one is your partner, so choose with your head.' : `Pick ${need === 1 ? 'your opponent' : need + ' opponents'}.`;
-  const st = AI.status();
   return `<h3 class="sec">The game</h3><div class="grid2">${Object.entries(FORMATS).map(([id, x]) => `<button class="pick" data-act="fmt" data-id="${id}" aria-pressed="${U.fmt === id}"><h3>${x.name}</h3><span class="note">${x.blurb}</span></button>`).join('')}</div>
   <h3 class="sec">How long have you got?</h3><div class="rowwrap">${[3, 6, 9].map(n => `<button class="chip" data-act="len" data-id="${n}" aria-pressed="${U.total === n}" style="padding-left:14px">${n} holes</button>`).join('')}</div>
   <h3 class="sec">The course</h3><div class="grid2">${all.map(c => `<button class="pick" data-act="course" data-id="${esc(c.id)}" aria-pressed="${U.course === c.id}"><h3>${esc(c.name)}</h3><span class="note">${esc(c.tag)}</span></button>`).join('')}</div>
   <h3 class="sec">The company</h3><p class="note">${who} Leave it short and I’ll fill the gaps with whoever is loitering by the first tee.</p>
   <div class="rowwrap">${NPCS.map(n => { const i = U.rivals.indexOf(n.id); return `<button class="chip" data-act="rival" data-id="${n.id}" aria-pressed="${i >= 0}"><i class="dot" style="background:${n.color}"></i>${esc(n.short)}${i === 0 && f.teams ? ' (partner)' : ''}</button>`; }).join('')}</div>
-  <div class="card"><div class="rowwrap" style="justify-content:space-between"><b>Rival brains</b><button class="btn small ${save.ai && st !== 'offline' && st !== 'declined' ? 'yellow' : ''}" data-act="ai" ${st === 'offline' || st === 'declined' ? 'disabled' : ''}>${st === 'offline' ? 'Unavailable here' : st === 'declined' ? 'Declined' : save.ai ? 'On' : 'Off'}</button></div>
-  <p class="note">${st === 'offline' ? 'Each rival still plays to their own personality, they just stick to their stock insults.' : 'Each rival has their own Claude-powered brain that sets their strategy and trash talk hole by hole. It uses a little of your Claude usage; the first call asks your permission.'}</p></div>
   <div class="sticky-cta"><button class="btn pink big" data-act="tee">Tee off</button></div>`;
 }
 function pageLocker() {
@@ -1663,9 +1716,7 @@ function pageLocker() {
   <div class="rowwrap"><button class="btn" data-act="go" data-to="golfer">Change golfer</button><button class="btn pink" data-act="play">Play a round</button></div>`;
 }
 function pageRivals() {
-  const st = AI.status();
-  return `<p class="lede">Eight regulars, eight separate agents. Each one picks their own shots, tilts in their own way, and holds their own grudges against you.</p>
-  <p class="note">Brains are ${st === 'live' ? 'live: each rival thinks for themselves between holes.' : st === 'offline' ? 'offline in this view, so they play on instinct and stock insults.' : st + '.'}</p>
+  return `<p class="lede">Eight regulars, eight separate agents. Each one picks their own shots, re-plans every hole from the state of the match, tilts in their own way, and has plenty to say about your golf.</p>
   <div class="grid2">${NPCS.map(n => { const r = save.h2h[n.id]; return `<div class="card"><div class="who">${badge(n.name, n.color)}<span><h3 style="font-size:1.3rem">${esc(n.name)}</h3><span class="note">${r && r.w + r.l ? (r.w > r.l ? `You lead ${r.w}–${r.l}` : r.w < r.l ? `They lead ${r.l}–${r.w}` : `Level at ${r.w}–${r.l}`) : 'You haven’t met yet'}</span></span></div><p style="margin-top:8px">${esc(n.bio)}</p>${skillBars(n.skills)}<p class="note" style="margin-top:8px">Risk appetite ${Math.round(n.aggr * 10)}/10. Tilts ${n.tilt > .6 ? 'badly' : n.tilt > .3 ? 'a bit' : 'almost never'}. Reads the wind ${n.savvy > .8 ? 'like a book' : n.savvy > .45 ? 'well enough' : 'like a horoscope'}.</p></div>`; }).join('')}</div>`;
 }
 function pageResult() {
@@ -1688,15 +1739,14 @@ function teeOff() {
   const f = FORMATS[U.fmt], g = golfer(), C = getCourse(U.course, courses);
   let ids = U.rivals.slice(0, f.n - 1);
   for (const n of shuffle(NPCS)) if (ids.length < f.n - 1 && !ids.includes(n.id)) ids.push(n.id);
-  const mk = n => ({ ...n, skills: { ...n.skills }, brain: new Brain(n) });
+  const mk = n => ({ ...n, skills: { ...n.skills }, _used: {} });
   const me = { id: 'me', name: g.name, short: 'You', human: true, color: '#ffffff', skills: levels(mySkills()) };
   const R = newRound({ format: U.fmt, holes: C.holes, total: U.total, theme: C.theme, courseName: C.name, seed: Date.now() >>> 0, players: [me, ...ids.map(id => mk(NPCS.find(n => n.id === id)))], field: U.fmt === 'stableford' ? NPCS.filter(n => !ids.includes(n.id)).map(mk) : [] });
-  AI.enabled = save.ai; G.hooks.seenHint = save.stats.holes > 0;
+  G.hooks.seenHint = save.stats.holes > 0;
   show('play'); playRound(R);
 }
 G.hooks.xp = (cat, amt) => { const sk = mySkills(), before = sk[cat].lvl; addXp(sk, cat, amt); G.xp[cat] = (G.xp[cat] || 0) + amt; saveLocal(); if (sk[cat].lvl > before) { G.R.players[0].skills[cat] = sk[cat].lvl; (G.ups = G.ups || []).push(cat); return sk[cat].lvl; } return null; };
 G.hooks.holeDone = () => { save.stats.holes++; persist(); };
-G.hooks.h2h = id => save.h2h[id];
 G.onEnd = (R, run) => {
   const st = standings(R), won = st.won && !st.tied, gains = { ...G.xp }, ups = (G.ups || []).slice(); G.ups = [];
   save.stats.rounds++; if (won) { save.stats.wins++; for (const k of SKILLS) { const b = mySkills()[k].lvl; addXp(mySkills(), k, 25); if (mySkills()[k].lvl > b) ups.push(k); } }
@@ -1706,12 +1756,9 @@ G.onEnd = (R, run) => {
     if (d > 0) r.w++; else if (d < 0) r.l++;
   });
   persist();
-  const rival = R.players[R.teams ? 2 : 1], q = { line: cannedLine(rival, won ? 'grudge' : st.tied ? 'sulk' : 'brag'), by: rival.name };
+  const rival = R.players[R.teams ? 2 : 1], q = { line: cannedLine(rival, won ? 'lose' : st.tied ? 'sulk' : 'win'), by: rival.name };
   lastRound = { R, st, gains, ups, quote: q };
   nav.length = 0; go('result');
-  const verdict = st.match ? st.text : `finished ${st.rank} of ${st.rows.length}${won ? ' and won' : ''}`;
-  const calls = brainsThink(run, verdict);
-  if (calls[0]) calls[0].then(r => { if (r && lastRound && lastRound.R === R) { q.line = r.line; q.by = r.p.name; if ($('quote')) { $('quote').textContent = r.line; $('quote-by').textContent = r.p.name; } } });
 };
 
 // ---------- Course Forger ----------
@@ -1808,7 +1855,6 @@ const ACTS = {
   len(d) { U.total = +d.id; renderPage(true); },
   course(d) { U.course = d.id; renderPage(true); },
   rival(d) { const i = U.rivals.indexOf(d.id), need = FORMATS[U.fmt].n - 1; if (i >= 0) U.rivals.splice(i, 1); else { U.rivals.push(d.id); if (U.rivals.length > need) U.rivals.shift(); } renderPage(true); },
-  ai() { save.ai = !save.ai; persist(); renderPage(true); },
   tee: teeOff, again: teeOff,
   async quit() { if (await modal(`<h3>Walking off?</h3><p>Your experience is safe. Your reputation is not.</p><button class="btn" data-val="no">Keep playing</button><button class="btn pink" data-val="yes">Walk off</button>`) === 'yes') { quitRound(); persist(); home(); } },
   view() { G.overview = !G.overview; $('b-view').classList.toggle('on', G.overview); const h = G.R.h; if (G.turn) aimCamera(); else if (G.overview) frame([h.tee, h.pin, ...h.path], 30, 80); },
