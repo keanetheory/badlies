@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bad Lies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Shrikhand&display=swap" rel="stylesheet">
+<style>
+/*CSS*/
+</style>
+</head>
+<body>
+<div id="app">
+  <section id="s-title" class="screen">
+    <canvas id="title-bg" aria-hidden="true"></canvas>
+    <div class="title-wrap">
+      <h1 class="wordmark"><span>Bad</span><span>Lies</span></h1>
+      <p class="tagline">Golf for people who say “that one didn’t count.”</p>
+      <div class="title-actions">
+        <button class="btn pink big" data-act="play">Play a round</button>
+        <button class="btn" data-act="go" data-to="locker">Locker room</button>
+        <button class="btn" data-act="go" data-to="rivals">Meet the rivals</button>
+        <button class="btn" data-act="go" data-to="forge">Course Forger</button>
+      </div>
+      <p class="title-foot" id="title-foot"></p>
+    </div>
+  </section>
+
+  <section id="s-page" class="screen scroll hidden">
+    <header class="pagebar"><button class="ib" data-act="back" aria-label="Back">&#8592;</button><h2 id="page-title"></h2></header>
+    <div id="page"></div>
+  </section>
+
+  <section id="s-play" class="screen hidden">
+    <canvas id="cv"></canvas>
+    <div class="hud top">
+      <div class="hrow">
+        <button class="ib dark" data-act="quit" aria-label="Leave the round">&#10005;</button>
+        <div class="holeinfo"><b id="h-no"></b><span id="h-meta"></span></div>
+        <div class="wind" id="h-windbox"><span class="arrow" id="h-arrow">&#10140;</span><span id="h-wind"></span></div>
+        <button class="ib dark" data-act="view" aria-label="Toggle whole-hole view" id="b-view">&#9872;</button>
+        <button class="ib dark" data-act="card" aria-label="Scorecard">&#9776;</button>
+      </div>
+      <div class="hrow two"><span id="h-fmt"></span><span id="h-status"></span></div>
+    </div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div id="chirp" aria-live="polite"></div>
+    <div class="hud bottom">
+      <div id="shotinfo"></div>
+      <div id="meter" class="idle" aria-hidden="true">
+        <div class="m-acc"></div><div class="m-tgt"></div><div class="m-fill"></div><div class="m-needle"></div>
+        <span class="m-l">strike</span><span class="m-r">full</span>
+      </div>
+      <div class="btnrow">
+        <button id="swing" class="btn pink big">Swing</button>
+        <button id="skip" class="btn hidden">Skip ahead</button>
+      </div>
+    </div>
+    <div id="modal" class="modal hidden"></div>
+  </section>
+</div>
+<input type="file" id="file-img" accept="image/*" hidden>
+<input type="file" id="file-geo" accept=".json,.geojson,application/json,application/geo+json" hidden>
+<script>
+(function () {
+'use strict';
+/*JS*/
+})();
+</script>
+</body>
+</html>

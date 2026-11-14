@@ -1,0 +1,1850 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bad Lies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Shrikhand&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #E4F2DC; --card: #F6FBF1; --ink: #12281A; --muted: #496252; --edge: #12281A;
+  --turf: #1D5C3A; --pink: #FF4F8B; --yellow: #FFD23F; --sky: #7FC8F8; --on-pink: #2a0713;
+  --display: 'Shrikhand', 'Cooper Black', 'Georgia', serif;
+  --body: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0E2A1B; --card: #173B27; --ink: #E9F5E1; --muted: #9FBDA6; --edge: #050F09; --turf: #2F8552; --pink: #FF5C93; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0E2A1B; --card: #173B27; --ink: #E9F5E1; --muted: #9FBDA6; --edge: #050F09; --turf: #2F8552; --pink: #FF5C93; color-scheme: dark; }
+*, *::before, *::after { box-sizing: inherit; }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+#app { position: relative; height: 100%; overflow: hidden; }
+.screen { position: absolute; inset: 0; }
+.screen.scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.hidden { display: none !important; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; line-height: 1.05; }
+p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+
+/* sticker buttons */
+.btn { background: var(--card); color: var(--ink); border: 2.5px solid var(--edge); border-radius: 14px; padding: 11px 18px; font-weight: 800; box-shadow: 0 4px 0 var(--edge); transition: transform .06s, box-shadow .06s; touch-action: manipulation; }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--edge); }
+.btn.pink { background: var(--pink); color: var(--on-pink); }
+.btn.yellow { background: var(--yellow); color: #2a2200; }
+.btn.big { font-size: 1.15rem; padding: 14px 22px; }
+.btn.small { padding: 7px 12px; border-radius: 10px; font-size: .9rem; box-shadow: 0 3px 0 var(--edge); }
+.btn:disabled { opacity: .5; pointer-events: none; }
+.ib { width: 40px; height: 40px; flex: none; border-radius: 12px; border: 2.5px solid var(--edge); background: var(--card); font-size: 1.1rem; font-weight: 800; display: grid; place-items: center; padding: 0; }
+.ib.dark { background: rgba(8, 26, 15, .7); color: #EAF6E2; border-color: rgba(234, 246, 226, .25); }
+.ib.dark.on { background: var(--yellow); color: #2a2200; }
+
+/* title */
+#s-title { display: grid; place-items: center; background: #1D5C3A; }
+#title-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.05); }
+#s-title::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 30, 16, .15), rgba(8, 30, 16, .72) 62%, rgba(8, 30, 16, .9)); }
+.title-wrap { position: relative; z-index: 1; width: min(440px, 100%); padding: 24px 22px 28px; align-self: end; color: #EAF6E2; }
+.wordmark { font-size: clamp(5.2rem, 27vw, 8.5rem); color: var(--pink); transform: rotate(-5deg); transform-origin: left bottom; text-shadow: 0 5px 0 #2a0713, 0 12px 26px rgba(0, 0, 0, .45); display: flex; flex-direction: column; line-height: .82; margin-bottom: 26px; }
+.wordmark span:last-child { color: var(--yellow); margin-left: .55em; }
+.tagline { font-size: 1.15rem; font-weight: 600; max-width: 24ch; margin-bottom: 22px; }
+.title-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.title-actions .big { grid-column: 1 / -1; }
+.title-actions .btn:last-child { grid-column: 1 / -1; }
+.title-foot { margin-top: 16px; font-size: .9rem; opacity: .85; min-height: 1.4em; }
+@media (prefers-reduced-motion: no-preference) { .wordmark { animation: plop .5s cubic-bezier(.2, 1.5, .4, 1) both; } }
+@keyframes plop { from { transform: rotate(-14deg) scale(.6); opacity: 0; } }
+
+/* pages */
+.pagebar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg); border-bottom: 2.5px solid var(--edge); }
+.pagebar h2 { font-size: 1.6rem; color: var(--turf); }
+#page { max-width: 720px; margin: 0 auto; padding: 18px 16px 48px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+#page > *, .card > *, ol > li { min-width: 0; }
+.card { grid-template-columns: minmax(0, 1fr); }
+.lede { font-size: 1.05rem; max-width: 60ch; }
+.note { color: var(--muted); font-size: .92rem; max-width: 62ch; }
+.card { background: var(--card); border: 2.5px solid var(--edge); border-radius: 18px; padding: 14px 16px; }
+.pick { display: block; width: 100%; text-align: left; background: var(--card); border: 2.5px solid var(--edge); border-radius: 18px; padding: 14px 16px; box-shadow: 0 4px 0 var(--edge); }
+.pick[aria-pressed="true"] { background: var(--yellow); color: #2a2200; transform: translateY(3px); box-shadow: 0 1px 0 var(--edge); }
+.pick[aria-pressed="true"] .note { color: #5a4a00; }
+.pick h3 { font-size: 1.35rem; margin-bottom: 4px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.sec { font-family: var(--display); font-size: 1.25rem; color: var(--turf); margin-top: 6px; }
+.rowwrap { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.chip { border: 2.5px solid var(--edge); border-radius: 999px; padding: 6px 14px 6px 8px; background: var(--card); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+.chip[aria-pressed="true"] { background: var(--yellow); color: #2a2200; }
+.dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--edge); flex: none; display: inline-block; }
+.who { display: flex; align-items: center; gap: 12px; }
+.badge { width: 52px; height: 52px; flex: none; border-radius: 50%; border: 2.5px solid var(--edge); display: grid; place-items: center; font-family: var(--display); font-size: 1.3rem; color: #12281A; box-shadow: 0 3px 0 var(--edge); }
+.bars { display: grid; grid-template-columns: auto 1fr auto; gap: 5px 10px; align-items: center; font-size: .9rem; margin-top: 10px; }
+.bar { height: 10px; border-radius: 6px; background: color-mix(in srgb, var(--ink) 14%, transparent); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--turf); border-radius: 6px; }
+.bar.xp i { background: var(--pink); }
+.sticky-cta { position: sticky; bottom: 0; padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, var(--bg) 30%); display: grid; }
+table.sc { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .92rem; }
+table.sc th, table.sc td { padding: 6px 7px; text-align: center; border-bottom: 1.5px solid color-mix(in srgb, var(--ink) 18%, transparent); }
+table.sc th:first-child, table.sc td:first-child { text-align: left; white-space: nowrap; }
+table.sc .me td { font-weight: 800; }
+table.sc .u { color: #c2185b; font-weight: 800; } table.sc .o { opacity: .75; }
+.scwrap { overflow-x: auto; }
+.verdict { font-size: clamp(2.2rem, 9vw, 3.4rem); color: var(--pink); transform: rotate(-2deg); }
+.quote { border-left: 5px solid var(--pink); padding: 4px 0 4px 14px; font-size: 1.05rem; }
+textarea, input[type=text], select { font: inherit; width: 100%; padding: 10px 12px; border: 2.5px solid var(--edge); border-radius: 12px; background: var(--card); color: var(--ink); }
+textarea { min-height: 110px; resize: vertical; }
+pre.code { background: #0c2416; color: #d7f0d0; padding: 12px; border-radius: 12px; overflow-x: auto; font-size: .8rem; margin: 0; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.preview { width: 100%; border-radius: 14px; border: 2.5px solid var(--edge); background: #17402a; display: block; max-height: 70vh; object-fit: contain; }
+.thumbs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+.thumbs figure { margin: 0; flex: none; width: 96px; font-size: .78rem; text-align: center; }
+.thumbs canvas { width: 96px; height: 150px; object-fit: cover; border-radius: 10px; border: 2.5px solid var(--edge); display: block; margin-bottom: 4px; }
+
+/* play */
+#s-play { background: #0b2114; color: #EAF6E2; touch-action: none; user-select: none; -webkit-user-select: none; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hud { position: absolute; left: 0; right: 0; padding: 8px 10px; pointer-events: none; }
+.hud > * { pointer-events: auto; }
+.hud.top { top: 0; background: linear-gradient(rgba(6, 20, 12, .85), rgba(6, 20, 12, 0)); padding-bottom: 22px; }
+.hrow { display: flex; align-items: center; gap: 8px; }
+.hrow.two { margin-top: 6px; font-size: .88rem; justify-content: space-between; gap: 12px; text-shadow: 0 1px 3px #000; pointer-events: none; }
+#h-fmt { font-family: var(--display); color: var(--yellow); font-size: 1rem; }
+#h-status { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.holeinfo { flex: 1; min-width: 0; line-height: 1.15; text-shadow: 0 1px 3px #000; }
+.holeinfo b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.holeinfo span { font-size: .85rem; opacity: .9; }
+.wind { display: flex; flex-direction: column; align-items: center; font-size: .72rem; font-weight: 600; line-height: 1.1; min-width: 50px; text-align: center; text-shadow: 0 1px 3px #000; }
+.wind .arrow { font-size: 1.35rem; display: block; color: var(--sky); transition: transform .4s; }
+.wind.slope .arrow { color: var(--yellow); }
+.hud.bottom { bottom: 0; background: linear-gradient(rgba(6, 20, 12, 0), rgba(6, 20, 12, .9) 34%); padding: 30px 12px 12px; display: grid; gap: 9px; }
+#shotinfo { font-size: .95rem; min-height: 2.7em; text-shadow: 0 1px 3px #000; }
+#shotinfo b { font-size: 1.1rem; color: var(--yellow); }
+.btnrow { display: flex; gap: 10px; }
+.btnrow .btn { flex: 1; }
+#skip { flex: 0 0 auto; background: rgba(234, 246, 226, .14); color: #EAF6E2; border-color: rgba(234, 246, 226, .4); box-shadow: none; }
+#meter { position: relative; height: 26px; border-radius: 9px; background: rgba(234, 246, 226, .16); border: 2px solid rgba(234, 246, 226, .5); overflow: hidden; }
+#meter.idle { opacity: .45; }
+#meter .m-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(90deg, #3fe0c5, var(--yellow) 70%, var(--pink)); opacity: .8; }
+#meter .m-acc { position: absolute; top: 0; bottom: 0; background: rgba(255, 255, 255, .5); border-inline: 2px solid #fff; }
+#meter .m-tgt { position: absolute; top: 0; bottom: 0; background: rgba(255, 79, 139, .45); border-inline: 2px solid var(--pink); }
+#meter .m-needle { position: absolute; top: -2px; bottom: -2px; width: 4px; margin-left: -2px; background: #fff; box-shadow: 0 0 6px #000; left: 8%; }
+#meter span { position: absolute; top: 3px; font-size: .68rem; font-weight: 800; color: #fff; text-shadow: 0 1px 2px #000; pointer-events: none; }
+#meter .m-l { left: 13%; } #meter .m-r { right: 14%; }
+#toast { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); width: max-content; max-width: min(92%, 440px); background: var(--yellow); color: #2a2200; font-weight: 800; padding: 8px 14px; border-radius: 12px; border: 2.5px solid #1a1400; box-shadow: 0 4px 0 #1a1400; text-align: center; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 3; }
+#toast.show { opacity: 1; }
+#chirp { position: absolute; left: 10px; top: 158px; max-width: min(78%, 360px); background: #F6FBF1; color: #12281A; padding: 8px 12px 9px; border-radius: 4px 16px 16px 16px; border: 2.5px solid #07160e; font-size: .92rem; opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s; pointer-events: none; z-index: 3; }
+#chirp.show { opacity: 1; transform: none; }
+#chirp b { display: flex; align-items: center; gap: 6px; font-size: .8rem; }
+#chirp .dot { width: 12px; height: 12px; border-width: 1.5px; }
+#chirp .ai { font-weight: 600; opacity: .6; }
+.modal { position: absolute; inset: 0; z-index: 10; background: rgba(4, 14, 8, .6); display: grid; place-items: center; padding: 16px; overflow-y: auto; }
+.sheet { width: min(460px, 100%); background: var(--card); color: var(--ink); border: 2.5px solid var(--edge); border-radius: 20px; padding: 18px; display: grid; gap: 12px; box-shadow: 0 6px 0 var(--edge); }
+.sheet h3 { font-size: 1.7rem; color: var(--turf); }
+.sheet .kicker { font-weight: 800; color: var(--pink); }
+@media (prefers-reduced-motion: no-preference) { .sheet { animation: rise .22s ease-out both; } }
+@keyframes rise { from { transform: translateY(14px); opacity: 0; } }
+@media (min-width: 760px) { .hud.bottom { left: 50%; right: auto; transform: translateX(-50%); width: 520px; border-radius: 18px 18px 0 0; } }
+
+</style>
+</head>
+<body>
+<div id="app">
+  <section id="s-title" class="screen">
+    <canvas id="title-bg" aria-hidden="true"></canvas>
+    <div class="title-wrap">
+      <h1 class="wordmark"><span>Bad</span><span>Lies</span></h1>
+      <p class="tagline">Golf for people who say “that one didn’t count.”</p>
+      <div class="title-actions">
+        <button class="btn pink big" data-act="play">Play a round</button>
+        <button class="btn" data-act="go" data-to="locker">Locker room</button>
+        <button class="btn" data-act="go" data-to="rivals">Meet the rivals</button>
+        <button class="btn" data-act="go" data-to="forge">Course Forger</button>
+      </div>
+      <p class="title-foot" id="title-foot"></p>
+    </div>
+  </section>
+
+  <section id="s-page" class="screen scroll hidden">
+    <header class="pagebar"><button class="ib" data-act="back" aria-label="Back">&#8592;</button><h2 id="page-title"></h2></header>
+    <div id="page"></div>
+  </section>
+
+  <section id="s-play" class="screen hidden">
+    <canvas id="cv"></canvas>
+    <div class="hud top">
+      <div class="hrow">
+        <button class="ib dark" data-act="quit" aria-label="Leave the round">&#10005;</button>
+        <div class="holeinfo"><b id="h-no"></b><span id="h-meta"></span></div>
+        <div class="wind" id="h-windbox"><span class="arrow" id="h-arrow">&#10140;</span><span id="h-wind"></span></div>
+        <button class="ib dark" data-act="view" aria-label="Toggle whole-hole view" id="b-view">&#9872;</button>
+        <button class="ib dark" data-act="card" aria-label="Scorecard">&#9776;</button>
+      </div>
+      <div class="hrow two"><span id="h-fmt"></span><span id="h-status"></span></div>
+    </div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div id="chirp" aria-live="polite"></div>
+    <div class="hud bottom">
+      <div id="shotinfo"></div>
+      <div id="meter" class="idle" aria-hidden="true">
+        <div class="m-acc"></div><div class="m-tgt"></div><div class="m-fill"></div><div class="m-needle"></div>
+        <span class="m-l">strike</span><span class="m-r">full</span>
+      </div>
+      <div class="btnrow">
+        <button id="swing" class="btn pink big">Swing</button>
+        <button id="skip" class="btn hidden">Skip ahead</button>
+      </div>
+    </div>
+    <div id="modal" class="modal hidden"></div>
+  </section>
+</div>
+<input type="file" id="file-img" accept="image/*" hidden>
+<input type="file" id="file-geo" accept=".json,.geojson,application/json,application/geo+json" hidden>
+<script>
+(function () {
+'use strict';
+// ---------- 01-util: rng, geometry, noise ----------
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const smooth = t => t * t * (3 - 2 * t);
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function gauss(rng) { let u = 0; while (u === 0) u = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * rng()); }
+const pick = (arr, rng = Math.random) => arr[Math.floor(rng() * arr.length)];
+function shuffle(arr, rng = Math.random) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function pointInPoly(p, poly) {
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], b = poly[j];
+    if ((a.y > p.y) !== (b.y > p.y) && p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x) c = !c;
+  }
+  return c;
+}
+function polyBB(poly) { let a = 1e9, b = 1e9, c = -1e9, d = -1e9; for (const p of poly) { if (p.x < a) a = p.x; if (p.y < b) b = p.y; if (p.x > c) c = p.x; if (p.y > d) d = p.y; } return [a, b, c, d]; }
+function centroid(poly) { let x = 0, y = 0; for (const p of poly) { x += p.x; y += p.y; } return { x: x / poly.length, y: y / poly.length }; }
+function polyRadius(poly, c) { let r = 0; for (const p of poly) r += dist(p, c); return r / poly.length; }
+
+// Wobbly ellipse — the basic building block of greens, bunkers and ponds.
+function blob(cx, cy, rx, ry, rng, n = 20, wob = 0.2, rot = 0) {
+  const k1 = 2 + Math.floor(rng() * 2), k2 = 3 + Math.floor(rng() * 3), p1 = rng() * TAU, p2 = rng() * TAU;
+  const pts = [], cr = Math.cos(rot), sr = Math.sin(rot);
+  for (let i = 0; i < n; i++) {
+    const a = i / n * TAU;
+    const w = 1 + wob * (0.6 * Math.sin(k1 * a + p1) + 0.4 * Math.sin(k2 * a + p2));
+    const x = Math.cos(a) * rx * w, y = Math.sin(a) * ry * w;
+    pts.push({ x: cx + x * cr - y * sr, y: cy + x * sr + y * cr });
+  }
+  return pts;
+}
+function chaikin(pts, iter = 2) {
+  let p = pts;
+  for (let k = 0; k < iter; k++) {
+    const q = [];
+    for (let i = 0; i < p.length; i++) {
+      const a = p[i], b = p[(i + 1) % p.length];
+      q.push({ x: a.x * .75 + b.x * .25, y: a.y * .75 + b.y * .25 }, { x: a.x * .25 + b.x * .75, y: a.y * .25 + b.y * .75 });
+    }
+    p = q;
+  }
+  return p;
+}
+function catmullRom(pts, step = 5) {
+  const out = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const n = Math.max(2, Math.ceil(dist(p1, p2) / step));
+    for (let j = 0; j < n; j++) {
+      const t = j / n, t2 = t * t, t3 = t2 * t;
+      const f = (a, b, c, d) => .5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+      out.push({ x: f(p0.x, p1.x, p2.x, p3.x), y: f(p0.y, p1.y, p2.y, p3.y) });
+    }
+  }
+  out.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y });
+  return out;
+}
+function cumLen(path) { const L = [0]; for (let i = 1; i < path.length; i++) L.push(L[i - 1] + dist(path[i - 1], path[i])); return L; }
+function pointAtDist(path, L, d) {
+  d = clamp(d, 0, L[L.length - 1]);
+  let i = 1; while (i < L.length - 1 && L[i] < d) i++;
+  const t = (d - L[i - 1]) / Math.max(1e-6, L[i] - L[i - 1]);
+  return { x: lerp(path[i - 1].x, path[i].x, t), y: lerp(path[i - 1].y, path[i].y, t), i };
+}
+function nearestIdx(path, p) { let bi = 0, bd = 1e9; for (let i = 0; i < path.length; i++) { const d = dist(path[i], p); if (d < bd) { bd = d; bi = i; } } return { i: bi, d: bd }; }
+function rotatePt(p, o, a) { const c = Math.cos(a), s = Math.sin(a), x = p.x - o.x, y = p.y - o.y; return { x: o.x + x * c - y * s, y: o.y + x * s + y * c }; }
+
+// Value noise with octaves; world-space so every render of a hole agrees.
+function makeNoise(seed) {
+  const r = mulberry32(seed), P = new Uint8Array(514), g = new Float32Array(256);
+  const perm = shuffle([...Array(256).keys()], r);
+  for (let i = 0; i < 514; i++) P[i] = perm[i & 255];
+  for (let i = 0; i < 256; i++) g[i] = r();
+  function n(x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, X = xi & 255, Y = yi & 255;
+    const a = g[P[P[X] + Y]], b = g[P[P[X + 1] + Y]], c = g[P[P[X] + Y + 1]], d = g[P[P[X + 1] + Y + 1]];
+    const u = smooth(xf), v = smooth(yf);
+    return lerp(lerp(a, b, u), lerp(c, d, u), v);
+  }
+  return (x, y, oct = 3) => { let s = 0, amp = 1, f = 1, tot = 0; for (let o = 0; o < oct; o++) { s += n(x * f, y * f) * amp; tot += amp; amp *= .5; f *= 2; } return s / tot; };
+}
+
+// ---------- 02-course: hole model, generator, built-in courses ----------
+// A hole lives in yards. x runs right, y runs down; the tee sits near the bottom, the green near the top.
+// { name, par, yards, w, h, tee, pin, path[], fairways[], greens[], bunkers[], waters[], trees[{x,y,r}], teeBox, slope{x,y}, seed }
+
+function ribbon(path, L, d0, d1, hwFn) {
+  const left = [], right = [];
+  const n = Math.max(3, Math.ceil((d1 - d0) / 6));
+  for (let k = 0; k <= n; k++) {
+    const t = k / n, d = lerp(d0, d1, t);
+    const p = pointAtDist(path, L, d), a = pointAtDist(path, L, d - 2), b = pointAtDist(path, L, d + 2);
+    const tl = Math.hypot(b.x - a.x, b.y - a.y) || 1, nx = -(b.y - a.y) / tl, ny = (b.x - a.x) / tl;
+    const hw = hwFn(d) * clamp(.3 + Math.sqrt(Math.min(t, 1 - t) * 6), 0, 1);
+    left.push({ x: p.x + nx * hw, y: p.y + ny * hw });
+    right.push({ x: p.x - nx * hw, y: p.y - ny * hw });
+  }
+  return chaikin(left.concat(right.reverse()), 2);
+}
+
+function makeHole(o) {
+  const rng = mulberry32(o.seed), par = o.par;
+  const len = o.len || { 3: lerp(125, 172, rng()), 4: lerp(330, 425, rng()), 5: lerp(480, 540, rng()) }[par];
+  const dog = o.dogleg || 0, dog2 = o.dogleg2 || 0;
+  let ctrl;
+  if (par === 3) ctrl = [{ x: 0, y: 0 }, { x: dog * .3, y: -len * .5 }, { x: dog, y: -len }];
+  else if (par === 4) ctrl = [{ x: 0, y: 0 }, { x: dog * .04, y: -len * .3 }, { x: dog * .3, y: -len * .58 }, { x: dog, y: -len * .9 }];
+  else ctrl = [{ x: 0, y: 0 }, { x: dog * .08, y: -len * .24 }, { x: dog * .8, y: -len * .5 }, { x: dog + dog2 * .3, y: -len * .74 }, { x: dog + dog2, y: -len * .96 }];
+  let path = catmullRom(ctrl, 4), L = cumLen(path);
+  const k = len / L[L.length - 1];
+  path = path.map(p => ({ x: p.x * k, y: p.y * k })); L = cumLen(path);
+  const tee = path[0], gc = path[path.length - 1];
+  const pe = path[path.length - 4], endAng = Math.atan2(gc.y - pe.y, gc.x - pe.x);
+  const gr = o.greenR || lerp(11, 15, rng());
+  const h = { name: o.name || 'Unnamed', par, seed: o.seed, tee: { ...tee }, path, fairways: [], greens: [], bunkers: [], waters: [], trees: [], autoTrees: o.trees ?? 1, blurb: o.blurb || '' };
+  h.greens.push(blob(gc.x, gc.y, gr * lerp(.9, 1.2, rng()), gr * lerp(.9, 1.2, rng()), rng, 24, .13, rng() * TAU));
+  const pa = rng() * TAU, pr = gr * .45 * Math.sqrt(rng());
+  h.pin = { x: gc.x + Math.cos(pa) * pr, y: gc.y + Math.sin(pa) * pr };
+
+  const hw0 = o.hw || lerp(15, 21, rng()), ph1 = rng() * TAU, ph2 = rng() * TAU;
+  const hwAt = d => hw0 * (1 + .18 * Math.sin(d / 45 + ph1) + .1 * Math.sin(d / 23 + ph2));
+  const fStart = par > 3 ? (o.carry || lerp(62, 88, rng())) : len - gr - 28;
+  h.fairways.push(ribbon(path, L, fStart, len - gr + 3, par > 3 ? hwAt : () => 9));
+
+  const normalAt = d => { const a = pointAtDist(path, L, d - 2), b = pointAtDist(path, L, d + 2), tl = Math.hypot(b.x - a.x, b.y - a.y) || 1; return { p: pointAtDist(path, L, d), nx: -(b.y - a.y) / tl, ny: (b.x - a.x) / tl, ang: Math.atan2(b.y - a.y, b.x - a.x) }; };
+
+  // water first, so sand can avoid it
+  const wt = o.water || 'none';
+  if (wt === 'left' || wt === 'right') {
+    const side = wt === 'left' ? -1 : 1; // the normal points right of travel
+    const d = par === 3 ? len - gr - 8 : len * lerp(.48, .68, rng());
+    const rx = lerp(22, 32, rng()), ry = par === 3 ? lerp(26, 36, rng()) : lerp(40, 60, rng());
+    const q = normalAt(d), off = (par === 3 ? gr : hwAt(d)) + rx * .74;
+    h.waters.push(blob(q.p.x + q.nx * side * off, q.p.y + q.ny * side * off, rx, ry, rng, 26, .16, q.ang + Math.PI / 2));
+  } else if (wt === 'front') {
+    const ry = par === 3 ? Math.min(len * .26, 38) : lerp(12, 17, rng());
+    const q = normalAt(len - gr - ry - 7);
+    h.waters.push(blob(q.p.x, q.p.y, lerp(34, 46, rng()), ry, rng, 26, .14, q.ang + Math.PI / 2));
+  } else if (wt === 'cross') {
+    const q = normalAt(len * lerp(.55, .64, rng()));
+    h.waters.push(blob(q.p.x, q.p.y, 95, 5.5, rng, 30, .12, q.ang + Math.PI / 2 + lerp(-.25, .25, rng())));
+  }
+  const wet = p => h.waters.some(w => pointInPoly(p, w));
+
+  const front = endAng + Math.PI;
+  const nG = o.bunkers ?? 1 + Math.floor(rng() * 3);
+  for (let i = 0; i < nG; i++) {
+    const side = i % 2 ? 1 : -1, ang = front + side * lerp(.85, 2.3, rng()), br = lerp(4.5, 7.5, rng());
+    const c = { x: gc.x + Math.cos(ang) * (gr * 1.08 + br * .8), y: gc.y + Math.sin(ang) * (gr * 1.08 + br * .8) };
+    if (!wet(c)) h.bunkers.push(blob(c.x, c.y, br * lerp(1, 1.5, rng()), br, rng, 16, .22, ang + Math.PI / 2));
+  }
+  const nF = par > 3 ? (o.fbunkers ?? Math.floor(rng() * 3)) : 0;
+  for (let i = 0; i < nF; i++) {
+    const d = clamp(i === 0 ? lerp(215, 262, rng()) : len - lerp(95, 125, rng()), fStart + 40, len - 62);
+    const q = normalAt(d), side = rng() < .5 ? 1 : -1, off = hwAt(d) + 4;
+    const c = { x: q.p.x + q.nx * side * off, y: q.p.y + q.ny * side * off };
+    if (!wet(c)) h.bunkers.push(blob(c.x, c.y, lerp(5, 7, rng()), lerp(8, 12, rng()), rng, 16, .2, q.ang + Math.PI / 2));
+  }
+  return finalizeHole(h);
+}
+
+function finalizeHole(h) {
+  const rng = mulberry32(((h.seed || 7) ^ 0x9e3779b9) >>> 0);
+  if (h.path.length < 8) h.path = catmullRom(h.path, 4);
+  if (!h.teeBox) {
+    const a = Math.atan2(h.path[1].y - h.path[0].y, h.path[1].x - h.path[0].x);
+    h.teeBox = [[-6, -4.5], [6, -4.5], [6, 4.5], [-6, 4.5]].map(([x, y]) => rotatePt({ x: h.tee.x + x, y: h.tee.y + y }, h.tee, a));
+  }
+  const bb = [1e9, 1e9, -1e9, -1e9];
+  const ext = p => { if (p.x < bb[0]) bb[0] = p.x; if (p.y < bb[1]) bb[1] = p.y; if (p.x > bb[2]) bb[2] = p.x; if (p.y > bb[3]) bb[3] = p.y; };
+  [h.tee, h.pin, ...h.path].forEach(ext);
+  for (const set of [h.fairways, h.greens, h.bunkers]) for (const poly of set) poly.forEach(ext);
+  const m = 38; let minx = bb[0] - m, maxx = bb[2] + m; const miny = bb[1] - m, maxy = bb[3] + m;
+  if (maxx - minx < 170) { const c = (minx + maxx) / 2; minx = c - 85; maxx = c + 85; }
+  const T = p => ({ x: p.x - minx, y: p.y - miny });
+  h.tee = T(h.tee); h.pin = T(h.pin); h.path = h.path.map(T); h.teeBox = h.teeBox.map(T);
+  for (const k of ['fairways', 'greens', 'bunkers', 'waters']) h[k] = h[k].map(poly => poly.map(T));
+  h.trees = (h.trees || []).map(t => ({ x: t.x - minx, y: t.y - miny, r: t.r }));
+  h.w = maxx - minx; h.h = maxy - miny;
+  if (!h.slope) { const a = rng() * TAU, mg = lerp(.1, .36, rng()); h.slope = { x: Math.cos(a) * mg, y: Math.sin(a) * mg }; }
+  prepHole(h);
+  if (h.autoTrees) scatterTrees(h, rng, h.autoTrees);
+  return h;
+}
+
+// Recompute the derived bits (bounding boxes, path lengths). Call after loading a saved hole.
+function prepHole(h) {
+  for (const k of ['fairways', 'greens', 'bunkers', 'waters']) for (const poly of h[k]) poly.bb = polyBB(poly);
+  h.teeBox.bb = polyBB(h.teeBox);
+  h.L = cumLen(h.path);
+  h.yards = h.yards || Math.round(h.L[h.L.length - 1]);
+  h.greenC = centroid(h.greens[0]); h.greenR = polyRadius(h.greens[0], h.greenC);
+  return h;
+}
+
+function inAny(polys, p) {
+  for (const poly of polys) { const b = poly.bb; if (p.x < b[0] || p.x > b[2] || p.y < b[1] || p.y > b[3]) continue; if (pointInPoly(p, poly)) return true; }
+  return false;
+}
+function surfaceAt(h, p) {
+  if (p.x < 0 || p.y < 0 || p.x > h.w || p.y > h.h) return 'ob';
+  if (inAny(h.greens, p)) return 'green';
+  if (inAny(h.bunkers, p)) return 'sand';
+  if (inAny(h.waters, p)) return 'water';
+  if (inAny([h.teeBox], p)) return 'tee';
+  if (inAny(h.fairways, p)) return 'fairway';
+  for (const t of h.trees) { const dx = p.x - t.x, dy = p.y - t.y, r = t.r * .75; if (dx * dx + dy * dy < r * r) return 'trees'; }
+  return 'rough';
+}
+
+function scatterTrees(h, rng, density) {
+  const noise = makeNoise((h.seed || 3) + 77), target = Math.min(170, h.w * h.h / 650 * density);
+  for (let tries = 0; tries < target * 7 && h.trees.length < target; tries++) {
+    const p = { x: lerp(3, h.w - 3, rng()), y: lerp(3, h.h - 3, rng()) };
+    if (noise(p.x / 48, p.y / 48, 2) < .5) continue;
+    if (nearestIdx(h.path, p).d < 24) continue;
+    let ok = surfaceAt(h, p) === 'rough';
+    for (let a = 0; ok && a < 6; a++) ok = surfaceAt(h, { x: clamp(p.x + Math.cos(a) * 9, 0, h.w), y: clamp(p.y + Math.sin(a) * 9, 0, h.h) }) === 'rough';
+    if (ok) h.trees.push({ x: p.x, y: p.y, r: lerp(3.5, 7.5, rng()) });
+  }
+  h.trees.sort((a, b) => a.y - b.y);
+}
+
+// Compact JSON for saved custom holes.
+function packHole(h) {
+  const keep = { name: h.name, par: h.par, yards: h.yards, w: h.w, h: h.h, seed: h.seed, tee: h.tee, pin: h.pin, path: h.path, fairways: h.fairways, greens: h.greens, bunkers: h.bunkers, waters: h.waters, trees: h.trees, teeBox: h.teeBox, slope: h.slope, blurb: h.blurb || '' };
+  return JSON.parse(JSON.stringify(keep, (k, v) => typeof v === 'number' ? Math.round(v * 10) / 10 : v));
+}
+function unpackHole(o) { const h = JSON.parse(JSON.stringify(o)); h.slope = h.slope || { x: .2, y: .1 }; return prepHole(h); }
+
+// ---------- built-in courses ----------
+const THEMES = {
+  lush: { label: 'Parkland', wind: 12, trees: 1 },
+  links: { label: 'Links', wind: 22, trees: .12 },
+  desert: { label: 'Desert', wind: 9, trees: .45 },
+};
+const SODDEN = [
+  { par: 4, name: 'The Handshake', blurb: 'Wide open. If you miss this fairway, golf may not be your sport.', seed: 101, len: 355, dogleg: 10, hw: 22, bunkers: 1, fbunkers: 0 },
+  { par: 3, name: 'Wet Sock', blurb: 'All carry over the pond. Bring a spare ball. Bring several.', seed: 202, len: 142, water: 'front', bunkers: 1 },
+  { par: 5, name: 'Long Walk, Short Temper', blurb: 'Three good shots. You have maybe one.', seed: 303, len: 505, dogleg: 45, dogleg2: -30, fbunkers: 2, bunkers: 2 },
+  { par: 4, name: 'Sandy\u2019s Revenge', blurb: 'More beach than a package holiday.', seed: 404, len: 372, dogleg: -25, bunkers: 3, fbunkers: 2 },
+  { par: 4, name: 'The Lawyer', blurb: 'Bends the truth, hard left, around the lake.', seed: 505, len: 395, dogleg: -75, water: 'left', bunkers: 1, fbunkers: 1 },
+  { par: 3, name: 'Postage Due', blurb: 'A tiny green wearing a necklace of sand.', seed: 606, len: 128, greenR: 10, bunkers: 3 },
+  { par: 5, name: 'Ego Check', blurb: 'The creek says lay up. Your ego says otherwise.', seed: 707, len: 528, dogleg: -40, dogleg2: 55, water: 'cross', bunkers: 2, fbunkers: 1 },
+  { par: 4, name: 'The In-Law', blurb: 'Narrow, unforgiving, and it remembers everything.', seed: 808, len: 408, dogleg: 30, hw: 14, water: 'right', bunkers: 2, fbunkers: 1 },
+  { par: 4, name: 'Last Orders', blurb: 'The bar is watching from the terrace. No pressure.', seed: 909, len: 418, dogleg: 55, water: 'front', bunkers: 2, fbunkers: 1 },
+];
+const PROC_NAMES = {
+  links: ['Gorse Code', 'Sideways Rain', 'The Kilt Lifter', 'Pot Luck', 'Hell\u2019s Half Acre', 'Wee Beastie', 'Marram Karma', 'The Long Sulk', 'Haar Haar'],
+  desert: ['Dry Heave', 'Cactus Tax', 'Mirage', 'Snake Eyes', 'The Timeshare', 'Sunstroke', 'Tumbleweed', 'Buzzard\u2019s Buffet', 'Last Chance Saloon'],
+};
+function procSpecs(theme, seed) {
+  const rng = mulberry32(seed), pars = [4, 3, 5, 4, 4, 3, 5, 4, 4], waters = ['none', 'none', 'left', 'right', 'front', 'cross', 'none'];
+  return pars.map((par, i) => ({
+    par, name: PROC_NAMES[theme][i], seed: seed + i * 131, dogleg: par === 3 ? lerp(-8, 8, rng()) : lerp(-70, 70, rng()), dogleg2: lerp(-50, 50, rng()),
+    water: theme === 'links' ? (rng() < .2 ? 'cross' : 'none') : (rng() < (theme === 'desert' ? .3 : .5) ? pick(waters, rng) : 'none'),
+    bunkers: theme === 'links' ? 2 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 3), fbunkers: par > 3 ? Math.floor(rng() * (theme === 'links' ? 4 : 3)) : 0,
+    trees: THEMES[theme].trees,
+  }));
+}
+const BUILTIN = [
+  { id: 'sodden', name: 'Sodden Hollow Golf & Regret Club', theme: 'lush', tag: 'Parkland. Damp. Judgemental members.', specs: SODDEN },
+  { id: 'windy', name: 'Windy Bottom Links', theme: 'links', tag: 'No trees, no shelter, no mercy from the wind.', specs: procSpecs('links', 4242) },
+  { id: 'mirage', name: 'Cactus Jack\u2019s Mirage Dunes', theme: 'desert', tag: 'Miss the grass and you are playing off the surface of Mars.', specs: procSpecs('desert', 9191) },
+];
+const holeCache = {};
+function getCourse(id, customs) {
+  const b = BUILTIN.find(c => c.id === id);
+  if (b) { if (!holeCache[id]) holeCache[id] = b.specs.map(makeHole); return { id, name: b.name, theme: b.theme, tag: b.tag, holes: holeCache[id] }; }
+  const c = (customs || []).find(c => c.id === id);
+  if (!c) return getCourse('sodden');
+  if (!holeCache[id]) holeCache[id] = c.holes.map(unpackHole);
+  return { id, name: c.name, theme: c.theme || 'lush', tag: 'Forged by you. Blame accordingly.', holes: holeCache[id], custom: true };
+}
+
+// ---------- 03-render: the faux-realistic shaded course painter ----------
+// Everything is drawn in yards with the sun in the north-west, so lips, banks and canopies
+// all throw shadows to the south-east. Noise is sampled in world space, which keeps the
+// zoomed-in green patch consistent with the full-hole render.
+const PALETTES = {
+  lush: { rough: '#2e6a35', firstCut: '#3b7d3d', fairway: '#4c9a48', fringe: '#57a850', green: '#6cc062', tee: '#5cab54', sand: '#ead9a8', sandShade: 'rgba(120,92,40,.5)', water: ['#3b8fc4', '#1c5d94'], bank: 'rgba(24,50,30,.55)', tree: ['#18401f', '#24572a', '#34722f', '#4e8f3c'], shade: .55 },
+  links: { rough: '#8b8a4e', firstCut: '#7d9150', fairway: '#6c9c4c', fringe: '#74aa52', green: '#82bf5e', tee: '#78ad55', sand: '#e6d29c', sandShade: 'rgba(110,84,36,.55)', water: ['#4a86a3', '#2a5a77'], bank: 'rgba(60,60,30,.5)', tree: ['#3d4a22', '#55662c', '#6f7f34', '#8c9a45'], shade: .7 },
+  desert: { rough: '#c59a63', firstCut: '#7d9a4c', fairway: '#4f9a4a', fringe: '#59a852', green: '#6cc062', tee: '#5cab54', sand: '#f1e2bb', sandShade: 'rgba(140,96,50,.5)', water: ['#3aa0c0', '#1d6c92'], bank: 'rgba(110,80,45,.6)', tree: ['#3a4a22', '#566b2c', '#6f8436', '#93a652'], shade: .6 },
+};
+function tracePoly(c, poly) { c.beginPath(); c.moveTo(poly[0].x, poly[0].y); for (let i = 1; i < poly.length; i++) c.lineTo(poly[i].x, poly[i].y); c.closePath(); }
+function stripes(c, cx, cy, R, band, ang, light, dark) {
+  c.save(); c.translate(cx, cy); c.rotate(ang);
+  const n = Math.ceil(R / band);
+  for (let i = -n; i <= n; i++) { c.fillStyle = i & 1 ? light : dark; c.fillRect(-R, i * band, 2 * R, band + .05); }
+  c.restore();
+}
+
+function renderRegion(h, theme, x0, y0, w, hh, S) {
+  const T = PALETTES[theme] || PALETTES.lush;
+  const cv = document.createElement('canvas'); cv.width = Math.ceil(w * S); cv.height = Math.ceil(hh * S);
+  const c = cv.getContext('2d');
+  c.setTransform(S, 0, 0, S, -x0 * S, -y0 * S); c.lineJoin = 'round';
+  const cx = x0 + w / 2, cy = y0 + hh / 2, R = Math.hypot(w, hh);
+  const noise = makeNoise((h.seed || 5) + 11);
+
+  c.fillStyle = T.rough; c.fillRect(x0, y0, w, hh);
+
+  // fairways: first cut halo, then striped mow
+  for (const f of h.fairways) { tracePoly(c, f); c.strokeStyle = T.firstCut; c.lineWidth = 6; c.stroke(); }
+  for (const f of h.fairways) {
+    tracePoly(c, f); c.fillStyle = T.fairway; c.fill();
+    c.save(); c.clip(); stripes(c, cx, cy, R, 9, .5, 'rgba(255,255,255,.075)', 'rgba(0,0,0,.05)'); c.restore();
+  }
+  // tee box
+  tracePoly(c, h.teeBox); c.strokeStyle = T.firstCut; c.lineWidth = 2.5; c.stroke(); c.fillStyle = T.tee; c.fill();
+  c.save(); c.clip(); stripes(c, cx, cy, R, 2, .2, 'rgba(255,255,255,.1)', 'rgba(0,0,0,.05)'); c.restore();
+
+  // water: bank, depth gradient, inner bank shadow, glints
+  const wr = mulberry32((h.seed || 5) + 5);
+  for (const wtr of h.waters) {
+    const bb = wtr.bb || polyBB(wtr);
+    tracePoly(c, wtr); c.strokeStyle = T.bank; c.lineWidth = 3; c.stroke();
+    const g = c.createLinearGradient(bb[0], bb[1], bb[2], bb[3]); g.addColorStop(0, T.water[1]); g.addColorStop(1, T.water[0]);
+    c.fillStyle = g; c.fill();
+    c.save(); c.clip();
+    c.translate(1.6, 1.6); tracePoly(c, wtr); c.strokeStyle = 'rgba(5,25,50,.45)'; c.lineWidth = 4; c.stroke(); c.translate(-1.6, -1.6);
+    c.strokeStyle = 'rgba(255,255,255,.2)'; c.lineWidth = .45; c.lineCap = 'round';
+    const n = Math.min(60, (bb[2] - bb[0]) * (bb[3] - bb[1]) / 90);
+    for (let i = 0; i < n; i++) { const x = lerp(bb[0], bb[2], wr()), y = lerp(bb[1], bb[3], wr()), l = lerp(2, 6, wr()); c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + l / 2, y - .7, x + l, y); c.stroke(); }
+    c.restore();
+  }
+
+  // bunkers: grass lip, sand, shadow under the NW lip, sunlit SE face, rake lines
+  for (const b of h.bunkers) {
+    tracePoly(c, b); c.strokeStyle = 'rgba(20,48,24,.6)'; c.lineWidth = 2.4; c.stroke(); c.fillStyle = T.sand; c.fill();
+    c.save(); c.clip();
+    c.translate(1.3, 1.3); tracePoly(c, b); c.strokeStyle = T.sandShade; c.lineWidth = 2.6; c.stroke();
+    c.translate(-2.4, -2.4); tracePoly(c, b); c.strokeStyle = 'rgba(255,252,235,.55)'; c.lineWidth = 1.6; c.stroke(); c.translate(1.1, 1.1);
+    stripes(c, cx, cy, R, .7, -.4, 'rgba(255,255,255,.07)', 'rgba(90,70,30,.05)');
+    c.restore();
+  }
+
+  // green: fringe collar, fine checker mow, slope shading
+  for (const g of h.greens) {
+    const bb = g.bb || polyBB(g);
+    tracePoly(c, g); c.strokeStyle = T.fringe; c.lineWidth = 4.5; c.stroke(); c.fillStyle = T.green; c.fill();
+    c.save(); c.clip();
+    stripes(c, cx, cy, R, 2.6, .5, 'rgba(255,255,255,.07)', 'rgba(0,0,0,.035)');
+    stripes(c, cx, cy, R, 2.6, .5 + Math.PI / 2, 'rgba(255,255,255,.05)', 'rgba(0,0,0,.03)');
+    const gc = { x: (bb[0] + bb[2]) / 2, y: (bb[1] + bb[3]) / 2 }, r = Math.max(bb[2] - bb[0], bb[3] - bb[1]) / 2, sl = h.slope || { x: 0, y: 0 }, sm = Math.hypot(sl.x, sl.y) || 1;
+    const lg = c.createLinearGradient(gc.x - sl.x / sm * r, gc.y - sl.y / sm * r, gc.x + sl.x / sm * r, gc.y + sl.y / sm * r);
+    lg.addColorStop(0, 'rgba(255,255,220,.16)'); lg.addColorStop(1, 'rgba(0,30,10,.2)');
+    c.fillStyle = lg; c.fillRect(bb[0], bb[1], bb[2] - bb[0], bb[3] - bb[1]);
+    c.restore();
+  }
+
+  // relief: hillshade from a noise height field plus fine grain, blended over the turf
+  const q = S > 6 ? 3 : 2, sw = Math.ceil(cv.width / q), sh = Math.ceil(cv.height / q);
+  const sc = document.createElement('canvas'); sc.width = sw; sc.height = sh;
+  const sx = sc.getContext('2d'), img = sx.createImageData(sw, sh), d = img.data, gr = mulberry32(99);
+  for (let py = 0, i = 0; py < sh; py++) for (let px = 0; px < sw; px++, i += 4) {
+    const wx = x0 + px * q / S, wy = y0 + py * q / S;
+    const slope = noise((wx + 1.5) / 55, (wy + 1.5) / 55) - noise((wx - 1.5) / 55, (wy - 1.5) / 55);
+    const mott = noise(wx / 9 + 40, wy / 9 + 40, 2) - .5;
+    const v = clamp(128 - slope * 1100 + mott * 46 + (gr() - .5) * 16, 40, 215);
+    d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
+  }
+  sx.putImageData(img, 0, 0);
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'overlay'; c.globalAlpha = T.shade; c.imageSmoothingEnabled = true;
+  c.drawImage(sc, 0, 0, cv.width, cv.height); c.restore();
+
+  // trees: all shadows first, then canopies back to front
+  c.fillStyle = 'rgba(8,24,12,.3)';
+  for (const t of h.trees) { c.beginPath(); c.ellipse(t.x + t.r * .55, t.y + t.r * .6, t.r * 1.05, t.r * .9, .6, 0, TAU); c.fill(); }
+  const tr = mulberry32((h.seed || 5) + 23);
+  for (const t of h.trees) {
+    const lobes = theme === 'desert' ? 3 : 6;
+    for (let k = 0; k < lobes; k++) { const a = tr() * TAU, o = t.r * .42 * tr(); c.fillStyle = T.tree[k < lobes / 2 ? 0 : 1]; c.beginPath(); c.arc(t.x + Math.cos(a) * o, t.y + Math.sin(a) * o, t.r * lerp(.5, .72, tr()), 0, TAU); c.fill(); }
+    for (let k = 0; k < 4; k++) { const a = tr() * TAU, o = t.r * .35 * tr(); c.fillStyle = T.tree[k < 2 ? 2 : 3]; c.beginPath(); c.arc(t.x - t.r * .22 + Math.cos(a) * o, t.y - t.r * .24 + Math.sin(a) * o, t.r * lerp(.2, .38, tr()), 0, TAU); c.fill(); }
+  }
+  // soft vignette so the edge of the property reads as out of bounds
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  if (x0 === 0 && y0 === 0) {
+    const e = 14 * S; c.fillStyle = 'rgba(0,0,0,.16)';
+    c.fillRect(0, 0, cv.width, e * .25); c.fillRect(0, cv.height - e * .25, cv.width, e * .25); c.fillRect(0, 0, e * .25, cv.height); c.fillRect(cv.width - e * .25, 0, e * .25, cv.height);
+  }
+  return cv;
+}
+function renderHole(h, theme) {
+  const S = clamp(Math.floor(2600 / Math.max(h.w, h.h) * 10) / 10, 2, 4);
+  return { cv: renderRegion(h, theme, 0, 0, h.w, h.h, S), S };
+}
+function renderGreen(h, theme) {
+  const bb = h.greens[0].bb, m = 9, x0 = Math.max(0, bb[0] - m), y0 = Math.max(0, bb[1] - m), w = Math.min(h.w, bb[2] + m) - x0, hh = Math.min(h.h, bb[3] + m) - y0;
+  return { cv: renderRegion(h, theme, x0, y0, w, hh, 14), S: 14, x0, y0, w, h: hh };
+}
+
+// ---------- 04-engine: shots, putting physics, skills ----------
+const SKILLS = ['drive', 'approach', 'chip', 'sand', 'putt'];
+const SKILL_NAME = { drive: 'Driving', approach: 'Approach', chip: 'Chipping', sand: 'Sand play', putt: 'Putting' };
+const LIE_NAME = { tee: 'Tee', fairway: 'Fairway', rough: 'Rough', sand: 'Bunker', trees: 'Trees', green: 'Green' };
+const MAX_LEVEL = 10;
+const xpNeed = lvl => 60 + 40 * lvl;
+
+function shotCat(h, ball) {
+  if (ball.lie === 'green') return 'putt';
+  if (ball.lie === 'sand') return 'sand';
+  if (ball.shots === 0 && h.par > 3) return 'drive';
+  return dist(ball.pos, h.pin) < 55 ? 'chip' : 'approach';
+}
+function maxDist(p, cat, lie) {
+  const s = p.skills; let m;
+  if (cat === 'drive') m = 205 + 8 * s.drive;
+  else if (cat === 'approach') m = 178 + 5 * s.approach;
+  else if (cat === 'chip') m = 70;
+  else if (cat === 'sand') m = 95 + 7 * s.sand;
+  else m = 60;
+  if (lie === 'rough') m *= .88; else if (lie === 'trees') m *= .55;
+  return m;
+}
+// One standard deviation of angle (radians) and distance (fraction) for a player on a kind of shot.
+function sigma(p, cat, lie) {
+  const L = p.skills[cat]; let a, d;
+  if (cat === 'drive') { a = 7 - .5 * L; d = .06 - .003 * L; }
+  else if (cat === 'approach') { a = 6.6 - .48 * L; d = .1 - .007 * L; }
+  else if (cat === 'chip') { a = 6 - .4 * L; d = .2 - .014 * L; }
+  else if (cat === 'sand') { a = 9 - .6 * L; d = .28 - .02 * L; }
+  else { a = 2.6 - .2 * L; d = .15 - .011 * L; }
+  const k = lie === 'rough' ? 1.3 : lie === 'trees' ? 1.6 : 1;
+  return { a: a * k * Math.PI / 180, d: d * k };
+}
+function clubName(cat, d, max) {
+  if (cat === 'putt') return 'Putter';
+  if (cat === 'sand') return 'Sand wedge';
+  if (cat === 'chip') return d < 25 ? 'Chip' : 'Pitch';
+  if (cat === 'drive') return d > max * .86 ? 'Driver' : d > max * .74 ? '3-wood' : 'Hybrid';
+  const t = [[212, '3-wood'], [196, 'Hybrid'], [182, '4-iron'], [171, '5-iron'], [160, '6-iron'], [149, '7-iron'], [138, '8-iron'], [126, '9-iron'], [110, 'Pitching wedge'], [92, 'Gap wedge'], [72, 'Sand wedge']];
+  for (const [y, n] of t) if (d > y) return n;
+  return 'Lob wedge';
+}
+const ROLL = { drive: .12, approach: .06, chip: .4, sand: .25 };
+
+// Full-swing shot. exec = { power: 1 is "as intended", ang: radians off line }.
+function resolveShot(h, from, lie, target, exec, cat, wind) {
+  const D = Math.hypot(target.x - from.x, target.y - from.y) || .01;
+  const th = Math.atan2(target.y - from.y, target.x - from.x) + exec.ang, ux = Math.cos(th), uy = Math.sin(th);
+  const total = D * exec.power, rf = ROLL[cat], carry = total * (1 - rf);
+  let roll = total * rf;
+  const wk = (cat === 'chip' || cat === 'sand') ? .002 : .0045;
+  const land = { x: from.x + ux * carry + wind.x * carry * wk, y: from.y + uy * carry + wind.y * carry * wk };
+  const res = { from, land, end: land, lie: 'rough', penalty: 0, holed: false, event: 'ok', carry, total };
+  const s0 = surfaceAt(h, land);
+  if (s0 === 'ob') { res.event = 'ob'; res.penalty = 1; res.end = { ...from }; res.lie = lie; return res; }
+  if (s0 === 'water') return wetDrop(h, res, from, land, lie);
+  if (s0 === 'trees') { res.lie = 'trees'; res.event = 'trees'; return res; }
+  if (s0 === 'sand') { res.lie = 'sand'; return res; }
+  if (s0 === 'green' && dist(land, h.pin) < .25) { res.holed = true; res.end = { ...h.pin }; res.lie = 'green'; return res; }
+  if (s0 === 'rough') roll *= .35;
+  let pos = { ...land }, cur = s0;
+  const n = Math.ceil(roll), step = n ? roll / n : 0;
+  for (let i = 0; i < n; i++) {
+    const nx = { x: pos.x + ux * step, y: pos.y + uy * step }, s = surfaceAt(h, nx);
+    if (s === 'ob') break;
+    if (s === 'water') { res.end = nx; return wetDrop(h, res, pos, nx, lie); }
+    pos = nx; cur = s;
+    if (s === 'sand' || s === 'trees') break;
+    if (s === 'green' && dist(pos, h.pin) < .2 && (n - i) * step < 2.2) { res.holed = true; pos = { ...h.pin }; break; }
+    if (s === 'rough' && (n - i) > 2) i++; // rough eats roll twice as fast
+  }
+  res.end = pos; res.lie = cur; if (cur === 'trees') res.event = 'trees';
+  return res;
+}
+function wetDrop(h, res, dry, wetPt, lie) {
+  // walk back from the splash until we find land, then two more yards for the drop
+  let p = { ...wetPt }; const dx = dry.x - wetPt.x, dy = dry.y - wetPt.y, L = Math.hypot(dx, dy) || 1;
+  let k = 0; while (k < L + 4 && ['water', 'ob'].includes(surfaceAt(h, p))) { k += 1; p = { x: wetPt.x + dx / L * k, y: wetPt.y + dy / L * k }; }
+  k += 2; p = { x: wetPt.x + dx / L * k, y: wetPt.y + dy / L * k };
+  let s = surfaceAt(h, p); if (s === 'water' || s === 'ob') { p = { ...res.from }; s = lie; }
+  res.splash = { ...wetPt }; res.end = p; res.lie = s === 'trees' ? 'rough' : s; res.penalty = 1; res.event = 'water';
+  return res;
+}
+
+// Putting: a little rolling-ball sim with friction and a constant green slope.
+const PUTT_A = 2.0, CUP_R = .1, CUP_V = 2.7;
+function simulatePutt(h, from, ang, d) {
+  const v0 = Math.sqrt(2 * PUTT_A * Math.max(.05, d));
+  let x = from.x, y = from.y, vx = Math.cos(ang) * v0, vy = Math.sin(ang) * v0;
+  const pts = [{ x, y }], dt = .01; let minD = 1e9, holed = false, on = true;
+  for (let i = 0; i < 2500; i++) {
+    const sp = Math.hypot(vx, vy); if (sp < .06) break;
+    if (i % 12 === 0) on = surfaceAt(h, { x, y }) === 'green';
+    const fr = on ? PUTT_A : PUTT_A * 3.2;
+    vx += (-fr * vx / sp + (on ? h.slope.x : 0)) * dt; vy += (-fr * vy / sp + (on ? h.slope.y : 0)) * dt;
+    if (vx * Math.cos(ang) + vy * Math.sin(ang) < 0 && sp < .3) break; // don't trickle back uphill forever
+    x += vx * dt; y += vy * dt;
+    const dp = Math.hypot(x - h.pin.x, y - h.pin.y); if (dp < minD) minD = dp;
+    if (dp < CUP_R && sp < CUP_V) { holed = true; x = h.pin.x; y = h.pin.y; pts.push({ x, y }); break; }
+    if (i % 2 === 0) pts.push({ x, y });
+  }
+  const end = { x, y }; let lie = holed ? 'green' : surfaceAt(h, end), penalty = 0;
+  if (lie === 'water' || lie === 'ob') { penalty = 1; lie = 'green'; pts.push({ ...from }); return { pts, end: { ...from }, holed: false, lie, penalty, minD, event: 'water' }; }
+  if (lie === 'trees') lie = 'rough';
+  return { pts, end, holed, lie, penalty, minD, event: 'ok' };
+}
+// What a competent caddie would tell you: the line and weight that give the ball its best chance.
+function bestPuttAim(h, from) {
+  const base = Math.atan2(h.pin.y - from.y, h.pin.x - from.x), D = dist(from, h.pin);
+  let best = null;
+  const tryIt = (off, mult) => {
+    const r = simulatePutt(h, from, base + off, D * mult + .3), score = r.holed ? -1 + Math.abs(mult - 1.06) * .1 : dist(r.end, h.pin) + r.minD;
+    if (!best || score < best.score) best = { score, ang: base + off, d: D * mult + .3 };
+  };
+  for (let a = -8; a <= 8; a++) for (const m of [.85, .95, 1.05, 1.15, 1.3]) tryIt(a * .035, m);
+  const c = { ...best };
+  for (let a = -3; a <= 3; a++) for (const m of [-.04, 0, .04]) tryIt(c.ang - base + a * .009, (c.d - .3) / D + m);
+  return best;
+}
+
+// How good was that, 0..1? Drives the XP award.
+function shotQuality(h, cat, before, res) {
+  const rem = res.holed ? 0 : dist(res.end, h.pin);
+  if (res.penalty) return 0;
+  if (cat === 'drive') return res.lie === 'fairway' ? clamp(.6 + res.total / 600, 0, 1) : res.lie === 'rough' ? .4 : res.lie === 'green' ? 1 : .15;
+  if (cat === 'approach') return res.holed ? 1 : res.lie === 'green' ? clamp(1 - rem / 26, .5, 1) : res.lie === 'fairway' ? .35 : .2;
+  if (cat === 'chip') return res.holed ? 1 : clamp(1 - (rem - 1.5) / 9, .1, 1);
+  if (cat === 'sand') return res.holed ? 1 : res.lie === 'green' ? clamp(1 - rem / 20, .6, 1) : res.lie === 'sand' ? .05 : .45;
+  return res.holed ? clamp(.75 + before / 20, 0, 1) : rem < .8 ? .6 : rem < 2 ? .35 : .15;
+}
+function addXp(sk, cat, amount) {
+  // sk = { drive:{lvl,xp}, ... }; returns true on a level-up
+  const s = sk[cat]; if (s.lvl >= MAX_LEVEL) return false;
+  s.xp += amount; let up = false;
+  while (s.lvl < MAX_LEVEL && s.xp >= xpNeed(s.lvl)) { s.xp -= xpNeed(s.lvl); s.lvl++; up = true; }
+  if (s.lvl >= MAX_LEVEL) s.xp = 0;
+  return up;
+}
+const levels = sk => Object.fromEntries(SKILLS.map(k => [k, sk[k].lvl]));
+
+// ---------- 05-agents: the eight rivals and the brains that drive them ----------
+// Every rival is an agent with three layers:
+//   1. a persona (skills, appetite for risk, how badly they tilt, how well they read wind)
+//   2. a local policy that picks each shot by sampling outcomes for candidate targets (instant, works offline)
+//   3. a language-model "brain" with its own memory that sets strategy for the hole, makes Wolf calls and talks back
+const NPCS = [
+  { id: 'chad', name: 'Chad Bunkerman', short: 'Chad', color: '#ff7a45', bio: 'Crypto evangelist with a monster drive and a 40-putt habit. Calls everyone champ.', voice: 'loud, overconfident, finance-bro slang, never admits fault', skills: { drive: 8, approach: 5, chip: 3, sand: 4, putt: 3 }, aggr: .9, tilt: .8, savvy: .4,
+    lines: { needle: ['Tough break, champ. Want me to invoice you for that lesson?', 'That shot just got delisted.', 'I\u2019ve seen better swings on a playground.'], grudge: ['Okay champ, don\u2019t get used to it.', 'Beginner\u2019s luck is still luck, I guess.', 'Fine. That was adequate.'], brag: ['Absolute rocket. Somebody call air traffic control.', 'That\u2019s what peak performance looks like, people.', 'I\u2019d say sorry, but I\u2019m not.'], sulk: ['The wind moved. Everyone saw the wind move.', 'These greens are clearly broken.', 'My caddie app gave me the wrong number.'] } },
+  { id: 'peggy', name: 'Dame Peggy Thwaite', short: 'Peggy', color: '#b48cf2', bio: 'Club champion nine times, most recently last week. Hits it 150 yards, dead straight, forever.', voice: 'genteel, withering, backhanded compliments', skills: { drive: 3, approach: 6, chip: 8, sand: 6, putt: 9 }, aggr: .2, tilt: .15, savvy: .9,
+    lines: { needle: ['Oh dear. Never mind, it\u2019s a lovely day for a walk.', 'Bold choice, aiming there.', 'I had a swing like that once. Then I took a lesson.'], grudge: ['Well done, dear. Even a stopped clock, and so on.', 'Goodness. Do that again and I shall have to start trying.', 'Lovely. Who taught you that, and why did they stop?'], brag: ['Fairways and greens, dear. It isn\u2019t complicated.', 'Straight down the middle. How dull for you.', 'One does one\u2019s best.'], sulk: ['I blame the new groundskeeper.', 'That hasn\u2019t happened since 1987.', 'Hmph. Write that down as a practice shot.'] } },
+  { id: 'gary', name: 'Gary \u201cGimme\u201d Lunt', short: 'Gary', color: '#ffd23f', bio: 'Has never holed a putt under four feet because he has never attempted one. Keeps his own scorecard. In pencil.', voice: 'shifty, cheerful, always negotiating the rules', skills: { drive: 5, approach: 5, chip: 5, sand: 5, putt: 5 }, aggr: .5, tilt: .4, savvy: .6,
+    lines: { needle: ['That\u2019s gone, but I\u2019d have given you it.', 'Unlucky. Call it a practice one? I always do.', 'I\u2019ll put you down for a five. Ish.'], grudge: ['Nice. Suspiciously nice. Checking your ball.', 'Good shot. I wasn\u2019t looking, but good shot.', 'Alright, no need to show off.'], brag: ['And that\u2019s a gimme from there, obviously.', 'Textbook. Don\u2019t check which textbook.', 'Count it. Quickly, before anyone looks.'], sulk: ['Didn\u2019t count. Someone coughed.', 'I\u2019m taking a mulligan. Club rules. My club.', 'That was my provisional, actually.'] } },
+  { id: 'margot', name: 'Margot Steele', short: 'Margot', color: '#7fc8f8', bio: 'Ex-tour pro. Lost her card, kept the contempt. Hits irons like she is signing a warrant.', voice: 'ice-cold, clipped, clinical', skills: { drive: 7, approach: 9, chip: 6, sand: 7, putt: 6 }, aggr: .6, tilt: .3, savvy: .95,
+    lines: { needle: ['Interesting. Wrong, but interesting.', 'I\u2019ve seen that shot before. On a blooper reel.', 'You\u2019ll find it. Eventually.'], grudge: ['Acceptable.', 'Hm. So you can play. Noted.', 'Do it under pressure and I\u2019ll be impressed.'], brag: ['As intended.', 'That\u2019s called a golf shot. Take notes.', 'Pin high. Obviously.'], sulk: ['The yardage book is wrong.', 'Unacceptable. From me, I mean. From you it would be normal.', 'We do not speak of that one.'] } },
+  { id: 'tom', name: 'Old Tom Morose', short: 'Old Tom', color: '#9fb39a', bio: 'Greenkeeper here for forty years. Knows every blade of grass and resents most of them. Best bunker player alive, by necessity.', voice: 'gloomy, fatalistic, bone dry', skills: { drive: 5, approach: 6, chip: 7, sand: 9, putt: 6 }, aggr: .35, tilt: .2, savvy: 1,
+    lines: { needle: ['Aye, I knew that was coming. We all did.', 'The pond thanks you for your donation.', 'It only gets worse from here, you know.'], grudge: ['Good shot. It won\u2019t last.', 'Enjoy it. Joy is fleeting.', 'Well. Even the rain stops sometimes.'], brag: ['Out of trouble again. Story of my life.', 'Not bad for a man with no hope.', 'I\u2019d smile, but I\u2019ve forgotten how.'], sulk: ['Typical.', 'I mowed that myself. Betrayed by my own work.', 'This is what I get for hoping.'] } },
+  { id: 'bunny', name: 'Bunny Valentina', short: 'Bunny', color: '#ff4f8b', bio: 'Golf influencer with 2.1 million followers. Films every shot twice. Streaky as a cheap window, but the putter runs hot.', voice: 'bubbly, performative, narrates to her followers', skills: { drive: 6, approach: 4, chip: 5, sand: 3, putt: 8 }, aggr: .7, tilt: .6, savvy: .3,
+    lines: { needle: ['Ooh, can I post that? My followers love a fail.', 'Don\u2019t worry, I\u2019ll put a nice filter on it.', 'Guys, we do not swing like that. Like and subscribe.'], grudge: ['Okay, that one\u2019s going in the reel.', 'Wait, do that again, I wasn\u2019t recording.', 'Obsessed. Slightly annoyed, but obsessed.'], brag: ['And that\u2019s the thumbnail, guys.', 'Sponsors, you know where to find me.', 'Putter\u2019s hot. Somebody check the smoke alarm.'], sulk: ['We\u2019re cutting that from the vlog.', 'The lighting threw me off.', 'That one\u2019s for the bloopers. Members only.'] } },
+  { id: 'rev', name: 'Reverend Niblick', short: 'The Rev', color: '#e8e2d0', bio: 'Vicar of St Andrew-in-the-Rough. Steady as a pew. Forgives everything except slow play.', voice: 'sanctimonious, gentle, swears only in biblical euphemism', skills: { drive: 4, approach: 7, chip: 7, sand: 5, putt: 7 }, aggr: .3, tilt: .25, savvy: .8,
+    lines: { needle: ['The Lord giveth, and the pond taketh away.', 'I shall pray for your swing. It will need more than one.', 'Forgiveness is divine. That shot was not.'], grudge: ['A miracle. I know one when I see one.', 'Bless you. That can only be divine intervention.', 'Well struck. Pride comes before a fall, mind.'], brag: ['Straight and narrow, as it is written.', 'Somebody up there likes me.', 'Blessed are the fairway finders.'], sulk: ['Oh, sugar and sandals.', 'Forgive me, Father, for I have shanked.', 'Well, that was a test of faith.'] } },
+  { id: 'kev', name: 'DJ Sandtrap', short: 'Kev', color: '#3fe0c5', bio: 'Real name Kev. Brings a speaker, a cooler and no plan. Gets up and down from everywhere. Vibes first, score second.', voice: 'laid-back, chaotic, party energy', skills: { drive: 7, approach: 5, chip: 4, sand: 8, putt: 4 }, aggr: .8, tilt: .1, savvy: .5,
+    lines: { needle: ['Big swing, no ding. Shake it off.', 'That one\u2019s still dropping, mate. Like my new single.', 'Rough\u2019s a vibe. You\u2019ll love it in there.'], grudge: ['Oi oi! That\u2019s a banger.', 'Proper shot. Play that one back.', 'Alright, who let you get good?'], brag: ['Beach to green, baby. Greatest hits.', 'Drop the beat, then drop the putt.', 'Vibes are immaculate.'], sulk: ['Wrong tempo. My fault. Mostly.', 'Needs more bass.', 'We don\u2019t talk about that. Next track.'] } },
+];
+
+const GOLFERS = [
+  { id: 'barry', name: 'Barry Mulligan', color: '#ff4f8b', tag: 'Big off the tee. Bigger off the fairway.', skills: { drive: 5, approach: 2, chip: 2, sand: 2, putt: 3 } },
+  { id: 'fliss', name: 'Fliss Divot', color: '#7fc8f8', tag: 'Irons like lasers. Putts like she\u2019s posting a letter.', skills: { drive: 3, approach: 5, chip: 3, sand: 2, putt: 1 } },
+  { id: 'mo', name: 'Mo Chippendale', color: '#ffd23f', tag: 'Gets up and down from the car park.', skills: { drive: 2, approach: 3, chip: 5, sand: 3, putt: 2 } },
+  { id: 'sandy', name: 'Sandy Trapp', color: '#f2c488', tag: 'Lives in bunkers. Pays rent.', skills: { drive: 3, approach: 2, chip: 3, sand: 5, putt: 2 } },
+  { id: 'pip', name: 'Pip Yips', color: '#b48cf2', tag: 'Putts like a dream. The rest is a nightmare.', skills: { drive: 2, approach: 2, chip: 3, sand: 2, putt: 5 } },
+  { id: 'alex', name: 'Alex Average', color: '#3fe0c5', tag: 'Aggressively fine at everything.', skills: { drive: 3, approach: 3, chip: 3, sand: 3, putt: 3 } },
+];
+
+// The house commentator. Speaks only about the human, and never kindly.
+const SASS = {
+  fairway: ['Fairway. Don\u2019t let it go to your head.', 'Short grass. Who are you and what have you done with you?', 'Down the middle. Suspicious.', 'Fairway. Frame it.'],
+  rough: ['Rough. It\u2019s called that for a reason.', 'In the cabbage. Bring a strimmer.', 'The long stuff. Again.', 'Rough. Technically still golf.'],
+  sand: ['Beach day.', 'Bunker. Should have packed a bucket and spade.', 'Sand. It was right there and you still walked into it.', 'In the trap. The trap is delighted.'],
+  water: ['Splash. That ball had a family.', 'Wet. Add one stroke, subtract some dignity.', 'The fish thank you for your contribution.', 'Water. Brave of you to bring your good balls.'],
+  ob: ['Out of bounds. Somewhere, a car alarm.', 'That\u2019s gone. Reload, and maybe aim this time.', 'OB. The neighbours send their regards.'],
+  trees: ['Timber. You\u2019re in jail.', 'Trees are ninety percent air. You found the other ten.', 'In the woods. Say hi to the squirrels.'],
+  close: ['Stiff. Who\u2019s been practising?', 'That\u2019s a tap-in. Even for you.', 'Dart. Take a bow, quietly.'],
+  green: ['On the dance floor. Can\u2019t hear the music yet, though.', 'Green. Two putts from here, three if we\u2019re honest.', 'Putting surface. Low bar, cleared.'],
+  holed: ['Drained it.', 'Bottom of the cup. Act like you\u2019ve been there.', 'In. The crowd, such as it is, goes mild.'],
+  bomb: ['From downtown. Absolutely filthy.', 'That\u2019s obscene. Do it again.', 'Holed from another postcode.'],
+  chipin: ['Chip-in! Pure luck. Glorious, glorious luck.', 'Holed it from off the green. Nobody will believe you.'],
+  short: ['Never up, never in.', 'Short. The hole is further away than that. It always is.', 'Does your putter work?'],
+  long: ['Whoa. Brakes exist.', 'That one had places to be.', 'Past the hole and still rolling, emotionally.'],
+  wide: ['Read that like a foreign menu.', 'Break? What break?', 'Close. Horseshoes close.'],
+  tapin: ['Tap-in. Even you can\u2019t miss that.', 'Knocked in. Gary would have given you it anyway.'],
+  duff: ['Chunked it. The planet moved further than the ball.', 'Fat. Replace your divot. And your swing.', 'That went nowhere, with conviction.'],
+  pickup: ['That\u2019s the limit. Pick it up, we\u2019ve all seen enough.'],
+  ace: ['Hole in one! Drinks are on you. That\u2019s the rule.'],
+};
+const SCORE_NAME = d => d <= -3 ? 'Albatross' : d === -2 ? 'Eagle' : d === -1 ? 'Birdie' : d === 0 ? 'Par' : d === 1 ? 'Bogey' : d === 2 ? 'Double bogey' : d === 3 ? 'Triple bogey' : 'A big number';
+const SCORE_SASS = d => d <= -2 ? 'Eagle. Check the card, then check it again.' : d === -1 ? 'Birdie. Buy yourself something nice.' : d === 0 ? 'Par. Boring. Lovely, boring par.' : d === 1 ? 'Bogey. The people\u2019s score.' : d === 2 ? 'Double. We don\u2019t need to talk about it.' : 'A number so big it needs planning permission.';
+
+// ---------- local policy ----------
+const TRIALS = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [.7, .7], [-.7, -.7], [.7, -.7], [-.7, .7], [0, 1.8], [0, -1.8]];
+function shotCost(h, r) {
+  if (r.holed) return -25;
+  const rem = dist(r.end, h.pin), lp = { green: -8, fairway: 0, tee: 0, rough: 9, sand: 26, trees: 30 }[r.lie] || 0;
+  return (r.lie === 'green' ? rem * .6 : rem) + lp + (r.event === 'water' ? 55 : r.event === 'ob' ? 75 : 0);
+}
+function npcPlan(pl, h, ball, wind) {
+  const cat = shotCat(h, ball);
+  if (cat === 'putt') { const b = bestPuttAim(h, ball.pos); return { cat, ang: b.ang, d: b.d }; }
+  const from = ball.pos, max = maxDist(pl, cat, ball.lie), dPin = dist(from, h.pin), sg = sigma(pl, cat, ball.lie);
+  const toward = (p, d) => { const L = dist(from, p) || 1; return { x: from.x + (p.x - from.x) / L * d, y: from.y + (p.y - from.y) / L * d }; };
+  const cands = [];
+  if (dPin <= max) { cands.push({ ...h.pin }, { ...h.greenC }); } else cands.push(toward(h.pin, max * .97));
+  const i0 = nearestIdx(h.path, from).i;
+  for (let i = i0 + 2; i < h.path.length; i += 3) { const p = h.path[i], d = dist(from, p); if (d <= max * .98 && d > Math.min(60, max * .4) && dist(p, h.pin) < dPin - 15) cands.push({ ...p }); }
+  const aggr = clamp(pl.aggr + (pl.plan === 'attack' ? .25 : pl.plan === 'safe' ? -.25 : 0) + (pl.tiltNow || 0) * .2, 0, 1.2);
+  const wk = (cat === 'chip' || cat === 'sand') ? .002 : .0045;
+  let best = null;
+  for (const c of cands) {
+    const carry = dist(from, c) * (1 - ROLL[cat]);
+    let aim = { x: c.x - wind.x * carry * wk * pl.savvy, y: c.y - wind.y * carry * wk * pl.savvy };
+    if (dist(from, aim) > max) aim = toward(aim, max);
+    let sum = 0, sq = 0;
+    for (const [g1, g2] of TRIALS) { const v = shotCost(h, resolveShot(h, from, ball.lie, aim, { power: 1 + g1 * sg.d, ang: g2 * sg.a }, cat, wind)); sum += v; sq += v * v; }
+    const mean = sum / TRIALS.length, sd = Math.sqrt(Math.max(0, sq / TRIALS.length - mean * mean));
+    const score = mean + (.8 - aggr) * sd;
+    if (!best || score < best.score) best = { score, target: aim };
+  }
+  return { cat, target: best.target };
+}
+function npcExec(pl, cat, lie, rng) {
+  const sg = sigma(pl, cat, lie), m = 1 + (pl.tiltNow || 0) * .25 - (pl.heat || 0) * .08;
+  let power = 1 + gauss(rng) * sg.d * m; const ang = gauss(rng) * sg.a * m;
+  if (cat !== 'putt' && rng() < .012 * (11 - pl.skills[cat]) / 5) power *= .55;
+  return { power, ang };
+}
+function moodAfterHole(pl, diff) {
+  if (diff >= 2) { pl.tiltNow = Math.min(1, (pl.tiltNow || 0) + pl.tilt * .5); pl.heat = 0; }
+  else if (diff <= -1) { pl.tiltNow = Math.max(0, (pl.tiltNow || 0) - .3); pl.heat = Math.min(1, (pl.heat || 0) + .5); }
+  else { pl.tiltNow = (pl.tiltNow || 0) * .6; pl.heat = (pl.heat || 0) * .5; }
+}
+// Wolf call: returns the index of the chosen partner, or -1 to go alone.
+function npcWolfChoice(wolf, wolfIdx, players, balls, h) {
+  const q = (b, p) => -dist(b.pos, h.pin) - ({ fairway: 0, tee: 0, green: -20, rough: 12, sand: 30, trees: 40 }[b.lie] || 0) - b.strokes * 40 + SKILLS.reduce((s, k) => s + p.skills[k], 0);
+  let bi = -1, bq = -1e9;
+  players.forEach((p, i) => { if (i !== wolfIdx) { const v = q(balls[i], p); if (v > bq) { bq = v; bi = i; } } });
+  const mine = q(balls[wolfIdx], wolf), lean = wolf.wolfLean === 'lone' ? 25 : wolf.wolfLean === 'partner' ? -25 : 0;
+  return (mine + (wolf.aggr - .6) * 50 + lean > bq + 12) ? -1 : bi;
+}
+
+// ---------- language-model brains ----------
+const AI = {
+  sample: null, enabled: true, denied: false, coolUntil: 0, calls: 0,
+  async init() { try { if (typeof window !== 'undefined' && window.claude && window.claude.use) this.sample = await window.claude.use('sample'); } catch (e) { this.sample = null; } },
+  ok() { return this.enabled && !!this.sample && !this.denied && Date.now() > this.coolUntil; },
+  status() { return !this.sample ? 'offline' : this.denied ? 'declined' : !this.enabled ? 'off' : Date.now() < this.coolUntil ? 'resting' : 'live'; },
+  fail(e) { const c = e && e.code; if (c === 'not_granted') this.denied = true; else this.coolUntil = Date.now() + (c === 'rate_limited' ? 120000 : 25000); },
+  async json(prompt, opts) { if (!this.ok()) return null; this.calls++; try { return await this.sample.json(prompt, { modelTier: 'quick', cache: false, ...opts }); } catch (e) { this.fail(e); return null; } },
+};
+class Brain {
+  constructor(npc) { this.npc = npc; this.memory = []; this.said = []; }
+  note(s) { this.memory.push(s); if (this.memory.length > 8) this.memory.shift(); }
+  async think(ctx) {
+    const n = this.npc;
+    const prompt = `You are the mind of one computer-controlled golfer in Bad Lies, a cheeky, irreverent golf video game. Stay fully in character.
+
+Character: ${n.name}. ${n.bio}
+Voice: ${n.voice}.
+Your skills out of 10: driving ${n.skills.drive}, approach ${n.skills.approach}, chipping ${n.skills.chip}, sand ${n.skills.sand}, putting ${n.skills.putt}.
+Your temperament: risk appetite ${Math.round(n.aggr * 10)}/10.
+
+The human player is ${ctx.human}. Format: ${ctx.format}. ${ctx.rules}
+Standings: ${ctx.standings}
+${ctx.moment}
+Your memory of this round, oldest first: ${this.memory.length ? this.memory.join(' | ') : 'nothing yet'}
+Your history with ${ctx.human}: ${ctx.history}
+Lines you have already used (do not repeat or rephrase them): ${this.said.length ? this.said.join(' | ') : 'none'}
+
+Decide how you will play, then say one line of banter. The line is at most 16 words, sounds like you, and needles ${ctx.human} or reacts to the round. Keep it playful: no slurs, no swearing stronger than "bloody", nothing about anyone's body, gender, race, age or religion.
+
+Reply with only this JSON: {"strategy":"attack" or "steady" or "safe","wolf":"lone" or "partner","line":"..."}`;
+    const r = await AI.json(prompt);
+    if (!r || typeof r.line !== 'string') return null;
+    const line = r.line.replace(/^["\u201c]|["\u201d]$/g, '').slice(0, 140);
+    this.said.push(line); if (this.said.length > 6) this.said.shift();
+    return { strategy: ['attack', 'steady', 'safe'].includes(r.strategy) ? r.strategy : 'steady', wolf: r.wolf === 'lone' ? 'lone' : 'partner', line };
+  }
+}
+function cannedLine(npc, kind, rng = Math.random) { return pick(npc.lines[kind], rng); }
+
+// ---------- 06-round: formats, turn order, scoring. No DOM in here. ----------
+const FORMATS = {
+  stableford: { name: 'Stableford', n: 4, blurb: 'Points for not being terrible. Par is 2, birdie 3, and a double bogey gets you nothing but sympathy. You against all eight rivals.', rules: 'Stableford points: bogey 1, par 2, birdie 3, eagle 4. Most points wins.' },
+  matchplay: { name: 'Matchplay', n: 2, blurb: 'One on one. Win holes, not friends.', rules: 'Head-to-head matchplay: lowest score wins each hole.' },
+  wolf: { name: 'Wolf', n: 4, blurb: 'Each hole someone is the Wolf. After the tee shots the Wolf picks a partner, or goes it alone like a hero. Or an idiot.', rules: 'Wolf: the Wolf picks a partner after tee shots (2 points each if they win, 3 each to the other pair if they lose) or goes alone (4 points for a win, 1 each to the other three for a loss).' },
+  nines: { name: '9s', n: 3, blurb: 'Three players, nine points a hole. Best score takes 5, middle 3, worst 1. Ties split.', rules: 'Nines: 9 points per hole split 5-3-1 by score, ties shared.' },
+  foursomes: { name: 'Foursomes', n: 4, teams: true, blurb: 'Two a side, one ball, alternate shots. Blame is shared. Mostly with your partner.', rules: 'Foursomes matchplay: partners alternate shots with one ball.' },
+  pairs: { name: 'Pairs', n: 4, teams: true, blurb: 'Two a side, everyone plays their own ball, best score counts. Let your partner carry you.', rules: 'Better-ball pairs matchplay: the best score on each side counts.' },
+};
+const MATCH_FORMATS = ['matchplay', 'foursomes', 'pairs'];
+const TAPIN = .6;
+
+function newRound(cfg) {
+  const R = { fmt: cfg.format, holes: cfg.holes, total: cfg.total, theme: cfg.theme, courseName: cfg.courseName, players: cfg.players, field: cfg.field || [], hi: 0, up: 0, over: false, rng: mulberry32(cfg.seed || 1), results: [] };
+  R.strokes = R.players.map(() => []); R.pts = R.players.map(() => 0); R.fieldPts = R.field.map(() => 0);
+  R.teams = FORMATS[R.fmt].teams ? [[0, 1], [2, 3]] : null;
+  for (const p of [...R.players, ...R.field]) { p.tiltNow = 0; p.heat = 0; p.plan = 'steady'; p.wolfLean = null; }
+  return R;
+}
+function startHole(R) {
+  const h = R.h = R.holes[R.hi % R.holes.length];
+  const wa = R.rng() * TAU, wm = R.rng() * R.rng() * (THEMES[R.theme] || THEMES.lush).wind + 1;
+  R.wind = { x: Math.cos(wa) * wm, y: Math.sin(wa) * wm, mph: Math.round(wm), ang: wa };
+  const mk = (owner, hitters) => ({ owner, hitters, pos: { ...h.tee }, lie: 'tee', strokes: 0, shots: 0, holed: false });
+  R.balls = R.fmt === 'foursomes' ? [mk(0, [0, 1]), mk(2, [2, 3])] : R.players.map((p, i) => mk(i, [i]));
+  R.wolf = R.fmt === 'wolf' ? { idx: R.hi % 4, partner: null, decided: false } : null;
+  return h;
+}
+const hitterOf = (R, b) => b.hitters.length === 1 ? b.hitters[0] : b.hitters[(R.hi + b.shots) % 2];
+function nextBall(R) {
+  const live = R.balls.filter(b => !b.holed); if (!live.length) return null;
+  return live.find(b => b.shots === 0) || live.reduce((a, b) => dist(a.pos, R.h.pin) >= dist(b.pos, R.h.pin) ? a : b);
+}
+const needsWolfCall = R => !!R.wolf && !R.wolf.decided && R.balls.every(b => b.shots > 0);
+function setWolf(R, partner) { R.wolf.partner = partner; R.wolf.decided = true; }
+
+function applyShot(R, ball, res) {
+  const h = R.h;
+  ball.shots++; ball.strokes += 1 + res.penalty; ball.pos = { ...res.end }; ball.lie = res.lie;
+  if (res.holed) ball.holed = true;
+  else if (ball.lie === 'green' && dist(ball.pos, h.pin) < TAPIN) { ball.strokes++; ball.holed = true; res.tapin = true; ball.pos = { ...h.pin }; }
+  if (!ball.holed && ball.strokes >= h.par + 4) { ball.strokes = h.par + 4; ball.holed = true; ball.pickedUp = res.pickedUp = true; }
+  if (ball.holed && ball.strokes > h.par + 4) ball.strokes = h.par + 4;
+  return res;
+}
+function puttRes(h, from, ang, d) {
+  const pr = simulatePutt(h, from, ang, d);
+  return { from: { ...from }, land: pr.end, end: pr.end, lie: pr.lie, penalty: pr.penalty, holed: pr.holed, event: pr.event, pts: pr.pts, putt: true, minD: pr.minD };
+}
+function npcShot(R, ball, pl) {
+  const h = R.h, plan = npcPlan(pl, h, ball, R.wind), ex = npcExec(pl, plan.cat, ball.lie, R.rng), before = dist(ball.pos, h.pin);
+  const res = plan.cat === 'putt' ? puttRes(h, ball.pos, plan.ang + ex.ang, plan.d * ex.power) : resolveShot(h, { ...ball.pos }, ball.lie, plan.target, ex, plan.cat, R.wind);
+  res.cat = plan.cat; res.before = before; res.who = pl;
+  return applyShot(R, ball, res);
+}
+// Play one player around the current hole with nobody watching (the Stableford field, fast-forward, tests).
+function soloHole(R, pl) {
+  const b = { owner: -1, hitters: [0], pos: { ...R.h.tee }, lie: 'tee', strokes: 0, shots: 0, holed: false };
+  let guard = 0; while (!b.holed && guard++ < 30) npcShot(R, b, pl);
+  return b.strokes;
+}
+
+const stablefordPts = (par, s) => Math.max(0, 2 + par - s);
+function ninesSplit(s) {
+  const o = [0, 1, 2].sort((a, b) => s[a] - s[b]), [a, b, c] = o.map(i => s[i]), p = [0, 0, 0];
+  const give = a === b && b === c ? [3, 3, 3] : a === b ? [4, 4, 1] : b === c ? [5, 2, 2] : [5, 3, 1];
+  o.forEach((i, k) => p[i] = give[k]); return p;
+}
+function matchText(up, left) { return up === 0 ? 'All square' : Math.abs(up) > left && left > 0 ? `${Math.abs(up)} & ${left}` : `${Math.abs(up)} ${up > 0 ? 'up' : 'down'}`; }
+
+function finishHole(R) {
+  const h = R.h, par = h.par, P = R.players, me = P[0];
+  const s = P.map((p, i) => (R.fmt === 'foursomes' ? R.balls[i < 2 ? 0 : 1] : R.balls[i]).strokes);
+  s.forEach((v, i) => R.strokes[i].push(v));
+  const out = { hole: R.hi + 1, par, strokes: s, delta: P.map(() => 0), headline: '', sub: '' };
+  const names = idx => idx.map(i => i === 0 ? 'you' : P[i].short).join(' & ');
+  if (R.fmt === 'stableford') {
+    s.forEach((v, i) => { out.delta[i] = stablefordPts(par, v); R.pts[i] += out.delta[i]; });
+    R.field.forEach((p, i) => { const v = soloHole(R, p); R.fieldPts[i] += stablefordPts(par, v); moodAfterHole(p, v - par); });
+    out.headline = `${SCORE_NAME(s[0] - par)}. ${out.delta[0]} point${out.delta[0] === 1 ? '' : 's'}.`;
+  } else if (R.fmt === 'nines') {
+    out.delta = ninesSplit(s); out.delta.forEach((v, i) => R.pts[i] += v);
+    out.headline = `You take ${out.delta[0]} of the 9.`;
+  } else if (R.fmt === 'wolf') {
+    const w = R.wolf, A = w.partner >= 0 && w.partner !== null ? [w.idx, w.partner] : [w.idx], B = [0, 1, 2, 3].filter(i => !A.includes(i));
+    const a = Math.min(...A.map(i => s[i])), b = Math.min(...B.map(i => s[i])), lone = A.length === 1;
+    if (a < b) A.forEach(i => out.delta[i] = lone ? 4 : 2); else if (b < a) B.forEach(i => out.delta[i] = lone ? 1 : 3);
+    out.delta.forEach((v, i) => R.pts[i] += v);
+    const wn = w.idx === 0 ? 'You' : P[w.idx].short;
+    out.headline = a === b ? 'Hole halved. Nobody scores.' : a < b ? (lone ? `${wn} went alone and won. 4 points.` : `The Wolf pack (${names(A)}) wins it.`) : (lone ? `Lone Wolf ${wn} got eaten. 1 each to the rest.` : `${names(B)} beat the Wolf. 3 each.`);
+    out.headline = out.headline.replace(/^you/, 'You');
+  } else {
+    const a = R.teams ? Math.min(s[0], s[1]) : s[0], b = R.teams ? Math.min(s[2], s[3]) : s[1];
+    if (a < b) R.up++; else if (b < a) R.up--;
+    const left = R.total - R.hi - 1;
+    out.headline = a < b ? 'You win the hole.' : b < a ? 'You lose the hole.' : 'Halved.';
+    out.sub = matchText(R.up, left) + (left > 0 && Math.abs(R.up) <= left ? ` with ${left} to play` : '');
+    if (Math.abs(R.up) > left) R.over = true;
+  }
+  P.forEach((p, i) => { if (i > 0) moodAfterHole(p, s[i] - par); });
+  R.results.push(out);
+  if (R.hi + 1 >= R.total) R.over = true;
+  return out;
+}
+function statusText(R) {
+  if (MATCH_FORMATS.includes(R.fmt)) return matchText(R.up, R.total - R.hi);
+  if (R.fmt === 'stableford') return `${R.pts[0]} pts`;
+  return R.players.map((p, i) => `${i === 0 ? 'You' : p.short} ${R.pts[i]}`).join('  ');
+}
+// Final table: [{name, score, human, npc}] best first, plus a verdict for the human.
+function standings(R) {
+  let rows;
+  if (MATCH_FORMATS.includes(R.fmt)) {
+    const left = R.total - R.results.length, txt = matchText(R.up, left);
+    return { match: true, won: R.up > 0, tied: R.up === 0, text: R.up === 0 ? 'All square' : `${R.up > 0 ? 'You win' : 'You lose'} ${txt.replace(/ (up|down)$/, R.up > 0 ? ' up' : ' down')}`, rows: [] };
+  }
+  rows = R.players.map((p, i) => ({ name: p.name, score: R.pts[i], human: i === 0, id: p.id }));
+  R.field.forEach((p, i) => rows.push({ name: p.name, score: R.fieldPts[i], human: false, id: p.id }));
+  rows.sort((a, b) => b.score - a.score);
+  const mine = rows.find(r => r.human).score, rank = rows.filter(r => r.score > mine).length + 1;
+  return { match: false, rows, rank, won: rank === 1, tied: rank === 1 && rows.filter(r => r.score === mine).length > 1 };
+}
+
+// ---------- 07-forger: the course agent ----------
+// Three ways in, one way out (a playable hole in yards, ready for the shaded renderer):
+//   A. map data  — GeoJSON or Overpass JSON with OpenStreetMap golf tags (exact geometry, whole course at once)
+//   B. screenshot — a satellite or map image of one hole, surveyed by the vision model
+//   C. description — a sentence or two, laid out by the model (or by a keyword parser when offline)
+const YD = 1.09361;
+
+// ---- A. map data ----
+function geoFeatures(text) {
+  const j = JSON.parse(text), out = [];
+  const add = (tags, type, coords) => {
+    if (!tags) return;
+    if (type === 'Point') out.push({ tags, kind: 'pt', pts: [coords] });
+    else if (type === 'LineString') out.push({ tags, kind: coords.length > 3 && coords[0][0] === coords[coords.length - 1][0] && coords[0][1] === coords[coords.length - 1][1] && tags.golf !== 'hole' ? 'poly' : 'line', pts: coords });
+    else if (type === 'Polygon') out.push({ tags, kind: 'poly', pts: coords[0] });
+    else if (type === 'MultiPolygon') coords.forEach(c => out.push({ tags, kind: 'poly', pts: c[0] }));
+  };
+  if (j.elements) {
+    for (const e of j.elements) {
+      if (e.type === 'node' && e.lat != null) add(e.tags, 'Point', [e.lon, e.lat]);
+      else if (e.geometry) add(e.tags, 'LineString', e.geometry.map(g => [g.lon, g.lat]));
+      else if (e.members) e.members.filter(m => m.role === 'outer' && m.geometry).forEach(m => add(e.tags, 'Polygon', [m.geometry.map(g => [g.lon, g.lat])]));
+    }
+  } else {
+    const fs = j.type === 'FeatureCollection' ? j.features : j.type === 'Feature' ? [j] : [];
+    for (const f of fs) if (f.geometry) add(f.properties && (f.properties.tags || f.properties), f.geometry.type, f.geometry.coordinates);
+  }
+  return out;
+}
+function geoClass(t) {
+  const g = t.golf;
+  if (g === 'hole') return 'hole';
+  if (g === 'fairway' || g === 'green' || g === 'bunker' || g === 'tee') return g;
+  if (g === 'water_hazard' || g === 'lateral_water_hazard' || t.natural === 'water' || t.waterway === 'riverbank') return 'water';
+  if (t.natural === 'sand') return 'bunker';
+  if (t.natural === 'wood' || t.landuse === 'forest' || t.natural === 'scrub') return 'wood';
+  if (t.natural === 'tree') return 'tree';
+  return null;
+}
+function distToPolyline(p, line) {
+  let best = 1e9;
+  for (let i = 0; i < line.length - 1; i++) {
+    const a = line[i], b = line[i + 1], dx = b.x - a.x, dy = b.y - a.y, t = clamp(((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy || 1), 0, 1);
+    best = Math.min(best, Math.hypot(p.x - a.x - dx * t, p.y - a.y - dy * t));
+  }
+  return best;
+}
+function fillTrees(poly, rng, limit, keep) {
+  const bb = polyBB(poly), out = [];
+  for (let y = bb[1]; y < bb[3]; y += 9) for (let x = bb[0]; x < bb[2]; x += 9) {
+    const p = { x: x + rng() * 7, y: y + rng() * 7 };
+    if (out.length < limit && pointInPoly(p, poly) && (!keep || keep(p))) out.push({ x: p.x, y: p.y, r: lerp(4, 7.5, rng()) });
+  }
+  return out;
+}
+function importGeo(text) {
+  const feats = geoFeatures(text).map(f => ({ ...f, cls: geoClass(f.tags) })).filter(f => f.cls);
+  if (!feats.length) throw new Error('No golf features in that data. It needs OpenStreetMap tags like golf=green, golf=fairway, golf=hole.');
+  let lat0 = 0, lon0 = 0, n = 0;
+  for (const f of feats) for (const c of f.pts) { lon0 += c[0]; lat0 += c[1]; n++; }
+  lat0 /= n; lon0 /= n;
+  const kx = Math.cos(lat0 * Math.PI / 180) * 111320 * YD, ky = 110540 * YD;
+  for (const f of feats) { f.xy = f.pts.map(c => ({ x: (c[0] - lon0) * kx, y: -(c[1] - lat0) * ky })); f.c = centroid(f.xy); }
+  const of = c => feats.filter(f => f.cls === c);
+  let lines = of('hole').filter(f => f.kind === 'line' && f.xy.length >= 2).map(f => ({ line: f.xy, tags: f.tags }));
+  const notes = [];
+  if (!lines.length) {
+    // No routing in the data: pair each green with the tee whose corridor holds the most fairway.
+    const greens = of('green'), tees = of('tee'), fw = of('fairway'), cand = [];
+    for (const g of greens) for (const t of tees) {
+      const d = dist(g.c, t.c); if (d < 85 || d > 620) continue;
+      const seg = [t.c, g.c], cover = fw.filter(f => distToPolyline(f.c, seg) < 40).length;
+      cand.push({ g, t, score: cover * 10 + (d < 250 && !cover ? 4 : 0) - Math.abs(d - 380) / 200 });
+    }
+    cand.sort((a, b) => b.score - a.score);
+    const used = new Set();
+    for (const c of cand) { if (used.has(c.g) || used.has(c.t) || c.score <= 0) continue; used.add(c.g); used.add(c.t); lines.push({ line: [c.t.c, c.g.c], tags: {} }); }
+    if (lines.length) notes.push('No hole routing in the data, so tees were matched to greens by eye. Check the order.');
+  }
+  if (!lines.length) throw new Error('Found golf features but could not work out any holes. Include golf=hole lines, or at least tees and greens.');
+  lines.sort((a, b) => (parseInt(a.tags.ref) || 99) - (parseInt(b.tags.ref) || 99));
+  const holes = [];
+  for (const [k, { line, tags }] of lines.slice(0, 18).entries()) {
+    const tee = line[0], end = line[line.length - 1], rot = -Math.PI / 2 - Math.atan2(end.y - tee.y, end.x - tee.x);
+    const R = p => rotatePt(p, tee, rot), near = (f, d) => f.xy.some(p => distToPolyline(p, line) < d);
+    const rng = mulberry32(1234 + k * 17);
+    let greens = of('green').filter(f => f.kind === 'poly' && dist(f.c, end) < 45).sort((a, b) => dist(a.c, end) - dist(b.c, end)).slice(0, 1).map(f => f.xy.map(R));
+    if (!greens.length) { const e = R(end); greens = [blob(e.x, e.y, 13, 12, rng, 22, .12)]; }
+    const len = cumLen(line).pop(), par = parseInt(tags.par) || (len < 250 ? 3 : len < 470 ? 4 : 5);
+    const h = { name: tags.name || `Hole ${tags.ref || k + 1}`, par, seed: 500 + k * 31, tee: R(tee), pin: centroid(greens[0]), path: line.map(R), greens, autoTrees: 0, yards: Math.round(len),
+      fairways: of('fairway').filter(f => f.kind === 'poly' && near(f, 30)).map(f => f.xy.map(R)),
+      bunkers: of('bunker').filter(f => f.kind === 'poly' && near(f, 55)).map(f => f.xy.map(R)),
+      waters: of('water').filter(f => f.kind === 'poly' && near(f, 70)).map(f => f.xy.map(R)), trees: [] };
+    const teeBox = of('tee').filter(f => f.kind === 'poly' && dist(f.c, tee) < 25)[0]; if (teeBox) h.teeBox = teeBox.xy.map(R);
+    if (!h.fairways.length && par > 3) { const p = catmullRom(h.path, 4), L = cumLen(p), T = L[L.length - 1]; h.fairways = [ribbon(p, L, Math.min(80, T * .25), T - 10, () => 17)]; }
+    const woods = of('wood').filter(f => f.kind === 'poly' && near(f, 90)).map(f => f.xy.map(R));
+    const singles = of('tree').map(f => R(f.xy[0])).filter(p => distToPolyline(p, h.path) < 80);
+    finalizeHole(h);
+    const off = { x: h.tee.x - R(tee).x, y: h.tee.y - R(tee).y }, mv = p => ({ x: p.x + off.x, y: p.y + off.y });
+    const clear = p => p.x > 2 && p.y > 2 && p.x < h.w - 2 && p.y < h.h - 2 && surfaceAt(h, p) === 'rough';
+    for (const w of woods) h.trees.push(...fillTrees(w.map(mv), rng, 220 - h.trees.length, clear));
+    for (const s of singles) { const p = mv(s); if (clear(p)) h.trees.push({ x: p.x, y: p.y, r: 5 }); }
+    if (!h.trees.length) { h.autoTrees = .5; scatterTrees(h, rng, .5); }
+    h.trees.sort((a, b) => a.y - b.y);
+    holes.push(h);
+  }
+  return { holes, notes };
+}
+const OVERPASS_QUERY = (lat, lon) => `[out:json][timeout:25];
+(
+  way(around:1400,${lat},${lon})[golf];
+  way(around:1400,${lat},${lon})[natural~"water|wood|sand"];
+  node(around:1400,${lat},${lon})[natural=tree];
+);
+out geom;`;
+
+// ---- B and C. surveyed specs ----
+const SPEC_SHAPE = `{"name":"short cheeky name for the hole","par":3|4|5,"yards":number,
+"tee":[x,y],"green":{"center":[x,y],"radius":number},
+"centerline":[[x,y],...],            // 2 to 5 points from tee to green following the intended line of play
+"fairways":[[[x,y],...]],            // polygon outlines, 8 to 24 points each
+"bunkers":[{"center":[x,y],"radius":number}],
+"water":[[[x,y],...]],               // polygon outlines
+"woods":[[[x,y],...]],               // polygon outlines of tree cover
+"notes":"one sentence on what you saw or assumed"}`;
+function surveyPrompt(mode, extra) {
+  const head = mode === 'image'
+    ? `You are a golf course surveyor. The attached image is a satellite photo or map screenshot (for example from Google Maps) showing a golf hole. Trace the single most prominent complete hole.\nUse normalized image coordinates: x from 0 (left edge) to 1 (right edge), y from 0 (top edge) to 1 (bottom edge). Radii are fractions of the image width.`
+    : `You are a golf course architect. Lay out one golf hole from this description: "${extra}".\nDraw on a canvas where x runs 0 (left) to 1 (right) and y runs 0 (top) to 1 (bottom). The canvas is half as wide as it is tall. Put the tee near the bottom and the green near the top, and use most of the height. Radii are fractions of the canvas width.`;
+  return `${head}
+Estimate "yards" as the playing length from tee to green centre (par 3: 100-240, par 4: 280-470, par 5: 480-600)${mode === 'image' ? ', using any scale bar, or typical fairway widths of 30-45 yards, to judge it' : ''}.
+Fairway outlines should be believable shapes that stop short of the tee and run up to the green. Greens are about 25-35 yards across. Leave a list empty if the feature is absent.${mode === 'image' && extra ? `\nThe player adds: "${extra}".` : ''}
+Reply with only JSON in this shape:
+${SPEC_SHAPE}`;
+}
+function specToHole(spec, aspect, seed) {
+  const P = a => ({ x: Number(a[0]) * aspect, y: Number(a[1]) });
+  const ok = a => Array.isArray(a) && a.length >= 2 && isFinite(a[0]) && isFinite(a[1]);
+  if (!spec || !ok(spec.tee) || !spec.green || !ok(spec.green.center)) throw new Error('The survey came back without a tee and a green. Try a clearer picture or description.');
+  const tee0 = P(spec.tee), g0 = P(spec.green.center);
+  let line = (Array.isArray(spec.centerline) ? spec.centerline.filter(ok).map(P) : []);
+  if (line.length < 2 || dist(line[0], tee0) > dist(line[line.length - 1], tee0)) line = [tee0, g0];
+  line[0] = tee0; line[line.length - 1] = g0;
+  const rawLen = cumLen(line).pop() || 1e-6;
+  const par = [3, 4, 5].includes(spec.par) ? spec.par : 4;
+  const yards = clamp(Number(spec.yards) || { 3: 160, 4: 390, 5: 520 }[par], 90, 620), k = yards / rawLen;
+  const rot = -Math.PI / 2 - Math.atan2(g0.y - tee0.y, g0.x - tee0.x);
+  const W = p => { const q = rotatePt(p, tee0, rot); return { x: (q.x - tee0.x) * k, y: (q.y - tee0.y) * k }; };
+  const polys = list => (Array.isArray(list) ? list : []).filter(pl => Array.isArray(pl) && pl.filter(ok).length >= 3).map(pl => chaikin(pl.filter(ok).map(P).map(W), 2));
+  const rng = mulberry32(seed), gc = W(g0), gr = clamp((Number(spec.green.radius) || .03) * aspect * k, 9, 20);
+  const h = { name: String(spec.name || 'Mystery Hole').slice(0, 40), par, seed, yards: Math.round(yards), tee: { x: 0, y: 0 }, pin: { x: gc.x + (rng() - .5) * gr * .6, y: gc.y + (rng() - .5) * gr * .6 }, path: line.map(W),
+    greens: [blob(gc.x, gc.y, gr * lerp(.92, 1.15, rng()), gr * lerp(.92, 1.15, rng()), rng, 24, .12, rng() * TAU)], fairways: polys(spec.fairways), waters: polys(spec.water), trees: [], autoTrees: 0, blurb: String(spec.notes || '').slice(0, 160),
+    bunkers: (Array.isArray(spec.bunkers) ? spec.bunkers : []).filter(b => b && ok(b.center)).slice(0, 14).map(b => { const c = W(P(b.center)), r = clamp((Number(b.radius) || .012) * aspect * k, 3.5, 11); return blob(c.x, c.y, r * lerp(1, 1.4, rng()), r, rng, 16, .2, rng() * TAU); }) };
+  if (!h.fairways.length && par > 3) { const p = catmullRom(h.path, 4), L = cumLen(p), T = L[L.length - 1]; h.fairways = [ribbon(p, L, Math.min(80, T * .25), T - gr + 3, () => 18)]; }
+  const woods = polys(spec.woods);
+  finalizeHole(h);
+  const mv = p => ({ x: p.x + h.tee.x, y: p.y + h.tee.y }); // finalizeHole translated everything; the tee was the origin
+  const clear = p => p.x > 2 && p.y > 2 && p.x < h.w - 2 && p.y < h.h - 2 && surfaceAt(h, p) === 'rough' && distToPolyline(p, h.path) > 16;
+  for (const w of woods) h.trees.push(...fillTrees(w.map(mv), rng, 200 - h.trees.length, clear));
+  if (h.trees.length < 12) scatterTrees(h, rng, .6);
+  h.trees.sort((a, b) => a.y - b.y);
+  return h;
+}
+// Offline architect: enough keyword sense to turn "long par 5, dogleg right, water left" into a hole.
+function describeLocally(text, seed) {
+  const t = text.toLowerCase(), num = re => { const m = t.match(re); return m ? parseInt(m[1]) : null; };
+  let par = num(/par[\s-]*([345])/), yards = num(/(\d{2,3})\s*(?:yards|yard|yds|yd|y\b)/);
+  if (!par) par = yards ? (yards < 250 ? 3 : yards < 470 ? 4 : 5) : /short|little|tiny/.test(t) ? 3 : /long|monster|three[- ]shot/.test(t) ? 5 : 4;
+  const big = /sharp|severe|hard|big/.test(t) ? 85 : 50;
+  const dog = /dog\s*-?\s*leg|bend|turn|curv/.test(t) ? (/left/.test(t.split(/dog|bend|turn|curv/)[1] || t) ? -big : big) : 0;
+  const side = s => new RegExp(`(water|lake|pond|creek|sea|ocean)[^.]{0,24}${s}|${s}[^.]{0,24}(water|lake|pond|creek|sea|ocean)`).test(t);
+  const water = /island|carry|front|over (the )?(water|lake|pond)/.test(t) ? 'front' : /creek|stream|burn|ditch|cross/.test(t) ? 'cross' : side('left') ? 'left' : side('right') ? 'right' : /water|lake|pond/.test(t) ? pick(['left', 'right', 'front'], mulberry32(seed)) : 'none';
+  const sandy = /bunker|sand|trap|beach/.test(t);
+  return makeHole({ seed, par, len: yards ? clamp(yards, 90, 600) : undefined, dogleg: dog, dogleg2: /double|s-shape|snake/.test(t) ? -dog || 50 : 0, water,
+    hw: /tight|narrow|skinny/.test(t) ? 13 : /wide|generous|open/.test(t) ? 24 : undefined, bunkers: /no bunker/.test(t) ? 0 : sandy ? (/lots|many|loads|surround|riddled/.test(t) ? 4 : 3) : 1, fbunkers: sandy && par > 3 ? 2 : undefined,
+    greenR: /tiny|small green|postage/.test(t) ? 9.5 : /huge|big green|massive green/.test(t) ? 17 : undefined, trees: /no trees|links|open|treeless/.test(t) ? .1 : /forest|wood|tree-lined|trees/.test(t) ? 1.4 : .8,
+    name: text.split(/[.,;]/)[0].trim().slice(0, 32) || 'Homemade Hole', blurb: 'Built from your description without the model, so I went by keywords.' });
+}
+async function downscale(file, maxPx = 1400) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error('That file would not open as an image.')); i.src = url; });
+    const k = Math.min(1, maxPx / Math.max(img.width, img.height)), cv = document.createElement('canvas');
+    cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+    const blob = await new Promise(ok => cv.toBlob(ok, 'image/jpeg', .85));
+    return { blob, aspect: img.width / img.height };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+// ---------- 08-game: the play screen ----------
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ABORT = Symbol('abort');
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const G = { R: null, run: 0, cam: { x: 0, y: 0, s: 1 }, camT: { x: 0, y: 0, s: 1 }, turn: null, anim: null, fx: [], img: null, green: null, skip: false, overview: false, cw: 0, ch: 0, cyU: 0, dpr: 1, xp: {}, onEnd: null, hooks: {} };
+const TOP_PAD = 104, BOTTOM_PAD = 190;
+
+function resizeCanvas() {
+  const cv = $('cv'); G.cw = cv.clientWidth || 360; G.ch = cv.clientHeight || 640; G.dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = Math.round(G.cw * G.dpr); cv.height = Math.round(G.ch * G.dpr);
+  G.cyU = TOP_PAD + Math.max(120, G.ch - TOP_PAD - BOTTOM_PAD) / 2;
+}
+function frame(pts, pad = 22, minSpan = 60, snap = false) {
+  let a = 1e9, b = 1e9, c = -1e9, d = -1e9;
+  for (const p of pts) { if (!p) continue; a = Math.min(a, p.x); b = Math.min(b, p.y); c = Math.max(c, p.x); d = Math.max(d, p.y); }
+  const bw = Math.max(c - a + pad * 2, minSpan), bh = Math.max(d - b + pad * 2, minSpan), uh = Math.max(120, G.ch - TOP_PAD - BOTTOM_PAD);
+  G.camT = { x: (a + c) / 2, y: (b + d) / 2, s: clamp(Math.min(G.cw / bw, uh / bh), .4, 60) };
+  if (snap) G.cam = { ...G.camT };
+}
+
+// ---------- drawing ----------
+function ballColor(b) { const R = G.R, p = R.players[b.owner]; return p.human ? '#ffffff' : p.color; }
+function drawBall(c, x, y, r, col, ring) {
+  c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x + r * .5, y + r * .55, r, r * .7, 0, 0, TAU); c.fill();
+  c.fillStyle = col; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
+  c.lineWidth = 1.5; c.strokeStyle = 'rgba(0,0,0,.65)'; c.stroke();
+  if (ring) { c.strokeStyle = '#FF4F8B'; c.lineWidth = 2; c.beginPath(); c.arc(x, y, r + 4, 0, TAU); c.stroke(); }
+}
+function tag(c, x, y, text) {
+  c.font = '600 12px "Bricolage Grotesque", system-ui, sans-serif'; const w = c.measureText(text).width + 12;
+  c.fillStyle = 'rgba(6,20,12,.8)'; c.beginPath(); c.roundRect(x - w / 2, y - 30, w, 18, 6); c.fill();
+  c.fillStyle = '#EAF6E2'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, x, y - 20.5);
+}
+function animState(a, now) {
+  const e = Math.max(0, now - a.t0), r = a.res;
+  if (r.putt) { const i = Math.min(r.pts.length - 1, Math.floor(e / 1000 * a.rate / .02)); return { p: r.pts[i], z: 0, done: i >= r.pts.length - 1 }; }
+  if (e < a.flight) { const t = e / a.flight; return { p: { x: lerp(r.from.x, a.land.x, t), y: lerp(r.from.y, a.land.y, t) }, z: Math.sin(Math.PI * t) }; }
+  const t = Math.min(1, (e - a.flight) / a.roll), k = 1 - (1 - t) * (1 - t);
+  if (r.event === 'water' || r.event === 'ob') return { p: a.land, z: 0, hide: true, done: t >= 1, landed: true };
+  return { p: { x: lerp(a.land.x, r.end.x, k), y: lerp(a.land.y, r.end.y, k) }, z: 0, done: t >= 1, landed: true };
+}
+function draw(now) {
+  const c = G.ctx, R = G.R, h = R && R.h; if (!h || !G.img) return;
+  const { cw, ch, dpr } = G, s = G.cam.s, ox = cw / 2 - G.cam.x * s, oy = G.cyU - G.cam.y * s, P = p => ({ x: ox + p.x * s, y: oy + p.y * s });
+  c.setTransform(dpr, 0, 0, dpr, 0, 0); c.fillStyle = G.outer || '#0b2114'; c.fillRect(0, 0, cw, ch);
+  c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
+  c.drawImage(G.img.cv, ox, oy, h.w * s, h.h * s);
+  if (s > 5.5 && G.green) { const g = G.green; c.drawImage(g.cv, ox + g.x0 * s, oy + g.y0 * s, g.w * s, g.h * s); }
+  c.strokeStyle = 'rgba(255,255,255,.6)'; c.setLineDash([2, 8]); c.lineWidth = 2; c.strokeRect(ox, oy, h.w * s, h.h * s); c.setLineDash([]);
+
+  // the pin
+  const pp = P(h.pin), pole = clamp(s * 3.2, 24, 60), wave = Math.sin(now / 260) * 2;
+  c.fillStyle = '#0a160e'; c.beginPath(); c.ellipse(pp.x, pp.y, Math.max(2.4, CUP_R * 1.3 * s), Math.max(1.8, CUP_R * 1.05 * s), 0, 0, TAU); c.fill();
+  c.strokeStyle = 'rgba(0,0,0,.3)'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(pp.x, pp.y); c.lineTo(pp.x + pole * .5, pp.y + pole * .32); c.stroke();
+  c.strokeStyle = '#f4f4ec'; c.lineWidth = 2; c.beginPath(); c.moveTo(pp.x, pp.y); c.lineTo(pp.x, pp.y - pole); c.stroke();
+  c.fillStyle = '#FF4F8B'; c.beginPath(); c.moveTo(pp.x, pp.y - pole); c.quadraticCurveTo(pp.x + pole * .3, pp.y - pole * .95 + wave, pp.x + pole * .55, pp.y - pole * .78); c.lineTo(pp.x, pp.y - pole * .58); c.closePath(); c.fill();
+
+  // aiming aids
+  const T = G.turn;
+  if (T && T.mode !== 'fly') {
+    const bp = P(T.ball.pos), tp = P(T.target);
+    if (T.cat !== 'putt') {
+      c.strokeStyle = 'rgba(255,255,255,.3)'; c.lineWidth = 1.5; c.setLineDash([4, 7]); c.beginPath(); c.arc(bp.x, bp.y, T.max * s, 0, TAU); c.stroke();
+      c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = 2; c.setLineDash([7, 6]); c.beginPath(); c.moveTo(bp.x, bp.y); c.lineTo(tp.x, tp.y); c.stroke(); c.setLineDash([]);
+    } else if (T.preview) {
+      c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1.5; c.setLineDash([3, 6]); c.beginPath(); c.moveTo(bp.x, bp.y); c.lineTo(tp.x, tp.y); c.stroke();
+      c.strokeStyle = '#FFD23F'; c.lineWidth = 3; c.setLineDash([2, 7]); c.lineCap = 'round'; c.beginPath();
+      T.preview.forEach((p, i) => { const q = P(p); i ? c.lineTo(q.x, q.y) : c.moveTo(q.x, q.y); }); c.stroke(); c.setLineDash([]); c.lineCap = 'butt';
+    }
+    c.fillStyle = 'rgba(255,79,139,.3)'; c.strokeStyle = '#fff'; c.lineWidth = 2.5; c.beginPath(); c.arc(tp.x, tp.y, 12, 0, TAU); c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(tp.x - 5, tp.y); c.lineTo(tp.x + 5, tp.y); c.moveTo(tp.x, tp.y - 5); c.lineTo(tp.x, tp.y + 5); c.stroke();
+  }
+  // balls at rest
+  const br = clamp(s * .5, 4, 7.5), active = T ? T.ball : G.anim ? G.anim.ball : G.npcBall;
+  for (const b of [...R.balls].sort((x, y) => (x === active) - (y === active))) {
+    if (G.anim && G.anim.ball === b) continue;
+    if (b.holed || (b.shots === 0 && b !== active)) continue; // nobody needs to see four balls queueing on the tee
+    const q = P(b.pos); drawBall(c, q.x, q.y, br, ballColor(b), b === active);
+    if (b === G.npcBall && G.npcName) tag(c, q.x, q.y, G.npcName);
+  }
+  // ball in motion
+  if (G.anim) {
+    const a = G.anim, st = animState(a, now);
+    if (st.landed && !a.landed) { a.landed = true; if (a.res.event === 'water') G.fx.push({ p: a.land, t0: now }); }
+    if (!st.hide) { const q = P(st.p), lift = st.z * Math.min(110, 14 + a.res.carry * .22 * Math.max(1, s)); if (lift > 1) { c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(q.x, q.y, br, br * .6, 0, 0, TAU); c.fill(); } drawBall(c, q.x, q.y - lift, br * (1 + st.z * .5), ballColor(a.ball), false); if (a.name) tag(c, q.x, q.y - lift, a.name); }
+    if (st.done) { G.anim = null; a.done(); }
+  }
+  G.fx = G.fx.filter(f => now - f.t0 < 700);
+  for (const f of G.fx) { const q = P(f.p), t = (now - f.t0) / 700; c.strokeStyle = `rgba(255,255,255,${1 - t})`; c.lineWidth = 2.5; c.beginPath(); c.ellipse(q.x, q.y, 6 + t * 26, 3 + t * 13, 0, 0, TAU); c.stroke(); }
+}
+function tick(now) {
+  if (G.running) requestAnimationFrame(tick);
+  const dt = Math.min(.05, (now - (G.last || now)) / 1000); G.last = now;
+  const k = 1 - Math.pow(.002, dt); G.cam.x = lerp(G.cam.x, G.camT.x, k); G.cam.y = lerp(G.cam.y, G.camT.y, k); G.cam.s = lerp(G.cam.s, G.camT.s, k);
+  const T = G.turn;
+  if (T && (T.mode === 'power' || T.mode === 'acc')) {
+    if (T.mode === 'power') { T.pos += T.dir * T.speed * dt; if (T.pos >= 1.15) { T.pos = 1.15; T.dir = -1; } if (T.pos <= 0 && T.dir < 0) { T.mode = 'aim'; T.pos = 0; refreshControls(); } }
+    else { T.pos -= T.speed * dt; if (T.pos <= -.1) { T.pos = -.1; lockStrike(); } }
+    paintMeter();
+  }
+  draw(now);
+}
+function startLoop() { if (!G.running) { G.running = true; G.last = 0; requestAnimationFrame(tick); } }
+function stopLoop() { G.running = false; }
+
+// ---------- HUD ----------
+let toastTimer = 0, chirpTimer = 0;
+function toast(html, ms = 2600) { const t = $('toast'); t.innerHTML = html; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms); }
+const chirpQ = [];
+function chirp(pl, line, ai) { chirpQ.push({ pl, line, ai }); if (chirpQ.length > 3) chirpQ.shift(); if (!chirpTimer) nextChirp(); }
+function nextChirp() {
+  const el = $('chirp'), q = chirpQ.shift();
+  if (!q) { el.classList.remove('show'); chirpTimer = 0; return; }
+  el.innerHTML = `<b><i class="dot" style="background:${q.pl.color}"></i>${esc(q.pl.short)}${q.ai ? '<span class="ai">thinking out loud</span>' : ''}</b>${esc(q.line)}`;
+  el.classList.add('show'); chirpTimer = setTimeout(nextChirp, 2400 + q.line.length * 28);
+}
+function paintMeter() {
+  const T = G.turn, m = $('meter'); if (!T) return;
+  const pct = v => (v + .1) / 1.25 * 100;
+  m.querySelector('.m-needle').style.left = pct(T.pos) + '%';
+  m.querySelector('.m-fill').style.width = pct(T.mode === 'acc' ? T.power : T.pos) + '%';
+}
+function refreshControls() {
+  const T = G.turn, sw = $('swing'), m = $('meter');
+  if (!T || T.mode === 'fly') { sw.classList.add('hidden'); m.classList.add('hidden'); return; }
+  sw.classList.remove('hidden'); m.classList.remove('hidden'); $('skip').classList.add('hidden');
+  m.classList.toggle('idle', T.mode === 'aim');
+  const putt = T.cat === 'putt', L = G.R.players[0].skills[T.cat], za = (.03 + .004 * L) / 1.25 * 100;
+  const acc = m.querySelector('.m-acc'), tgt = m.querySelector('.m-tgt');
+  acc.style.display = putt ? 'none' : ''; m.querySelector('.m-l').style.display = putt ? 'none' : '';
+  acc.style.left = (8 - za) + '%'; acc.style.width = za * 2 + '%'; tgt.style.left = (88 - 2.8) + '%'; tgt.style.width = '5.6%';
+  sw.textContent = T.mode === 'aim' ? (putt ? 'Putt' : 'Swing') : T.mode === 'power' ? 'Set power' : 'Strike!';
+  if (T.mode === 'aim') { T.pos = 0; m.querySelector('.m-needle').style.left = '8%'; m.querySelector('.m-fill').style.width = '0'; }
+}
+function slopeWord() { const m = Math.hypot(G.R.h.slope.x, G.R.h.slope.y); return m < .17 ? 'gentle' : m < .27 ? 'sneaky' : 'vicious'; }
+function setWindBox(putting) {
+  const R = G.R, box = $('h-windbox'); box.classList.toggle('slope', putting);
+  if (putting) { $('h-arrow').style.transform = `rotate(${Math.atan2(R.h.slope.y, R.h.slope.x)}rad)`; $('h-wind').textContent = `${slopeWord()} slope`; }
+  else { $('h-arrow').style.transform = `rotate(${R.wind.ang}rad)`; $('h-wind').textContent = `${R.wind.mph} mph`; }
+}
+function updateInfo() {
+  const T = G.turn, h = G.R.h; if (!T) return;
+  const dT = dist(T.ball.pos, T.target), dP = dist(T.ball.pos, h.pin), first = !G.hooks.seenHint;
+  if (T.cat === 'putt') $('shotinfo').innerHTML = `<b>Putter</b> ${Math.round(dP * 3)} ft to the hole<br><span>${first ? 'Drag the target until the yellow line finds the hole, then tap for power.' : `Aiming ${Math.round(dT * 3)} ft. The slope is ${slopeWord()}.`}</span>`;
+  else $('shotinfo').innerHTML = `<b>${clubName(T.cat, dT, T.max)}</b> ${Math.round(dT)} yd<br><span>${first ? 'Drag the target. Tap Swing, then tap for power, then again on the strike line.' : `${LIE_NAME[T.ball.lie] || 'Rough'}, ${Math.round(dP)} yd to the pin`}</span>`;
+}
+function updateHud() {
+  const R = G.R, h = R.h;
+  $('h-no').textContent = `${R.hi + 1}. ${h.name}`; $('h-meta').textContent = `Par ${h.par}, ${h.yards} yd`;
+  let f = FORMATS[R.fmt].name;
+  if (R.wolf) { const w = R.wolf, n = i => i === 0 ? 'you' : R.players[i].short; f = !w.decided ? `Wolf: ${n(w.idx)}` : w.partner >= 0 ? `Wolf ${n(w.idx)} + ${n(w.partner)}` : `Lone Wolf: ${n(w.idx)}`; }
+  if (R.teams) f += ` with ${R.players[1].short}`;
+  $('h-fmt').textContent = f; $('h-status').textContent = statusText(R);
+}
+function modal(html) {
+  return new Promise(res => {
+    const el = document.createElement('div'); el.className = 'modal'; el.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
+    el.addEventListener('click', e => { const b = e.target.closest('[data-val]'); if (b) { el.remove(); res(b.dataset.val); } });
+    $('s-play').appendChild(el); const b = el.querySelector('[data-val]'); if (b) b.focus({ preventScroll: true });
+  });
+}
+
+// ---------- the human's shot ----------
+function defaultTarget(h, ball, cat, max) {
+  const d = dist(ball.pos, h.pin);
+  if (cat === 'putt' || d <= max) return { ...h.pin };
+  const i0 = nearestIdx(h.path, ball.pos).i; let best = null;
+  for (let i = i0 + 1; i < h.path.length; i++) { const p = h.path[i]; if (dist(ball.pos, p) <= max * .95 && dist(p, h.pin) < d && surfaceAt(h, p) === 'fairway') best = p; }
+  return best ? { ...best } : { x: ball.pos.x + (h.pin.x - ball.pos.x) / d * max * .95, y: ball.pos.y + (h.pin.y - ball.pos.y) / d * max * .95 };
+}
+function aimCamera(snap) {
+  const T = G.turn, h = G.R.h; if (!T) return;
+  if (G.overview) frame([h.tee, h.pin, ...h.path], 30, 80, snap);
+  else if (T.cat === 'putt') frame([T.ball.pos, h.pin], 3, 9, snap);
+  else frame([T.ball.pos, T.target0, dist(T.ball.pos, h.pin) < T.max * 1.5 ? h.pin : null], 30, 70, snap);
+}
+function puttPreview(T) {
+  const h = G.R.h, b = T.ball.pos, pr = simulatePutt(h, b, Math.atan2(T.target.y - b.y, T.target.x - b.x), dist(b, T.target) + .3);
+  T.preview = pr.pts.slice(0, Math.max(2, Math.ceil(pr.pts.length * clamp(.35 + .065 * G.R.players[0].skills.putt, 0, 1))));
+}
+function setTarget(w) {
+  const T = G.turn, b = T.ball.pos, d = dist(b, w) || .01, lim = T.cat === 'putt' ? 55 : T.max, mn = T.cat === 'putt' ? .4 : 4, k = clamp(d, mn, lim) / d;
+  T.target = { x: b.x + (w.x - b.x) * k, y: b.y + (w.y - b.y) * k };
+  if (T.cat === 'putt') puttPreview(T);
+  updateInfo();
+}
+function humanShot(ball) {
+  return new Promise(resolve => {
+    const R = G.R, h = R.h, me = R.players[0], cat = shotCat(h, ball), max = maxDist(me, cat, ball.lie);
+    const T = G.turn = { ball, cat, max, mode: 'aim', resolve, pos: 0, dir: 1, power: 1, acc: 0, sg: sigma(me, cat, ball.lie), speed: 1.25 / (1.05 + .05 * me.skills[cat]) };
+    T.target = T.target0 = defaultTarget(h, ball, cat, max);
+    if (cat === 'putt') puttPreview(T);
+    G.skip = false; G.npcBall = null; setWindBox(cat === 'putt'); aimCamera(); updateInfo(); refreshControls();
+  });
+}
+function onSwing() {
+  const T = G.turn; if (!T) return;
+  if (T.mode === 'aim') { T.mode = 'power'; T.pos = 0; T.dir = 1; refreshControls(); }
+  else if (T.mode === 'power') { T.power = Math.max(.08, T.pos); if (T.cat === 'putt') fire(); else { T.mode = 'acc'; refreshControls(); } }
+  else if (T.mode === 'acc') lockStrike();
+}
+function lockStrike() { const T = G.turn; if (!T || T.mode !== 'acc') return; T.acc = T.pos; fire(); }
+async function fire() {
+  const T = G.turn, R = G.R, h = R.h, ball = T.ball, sg = T.sg, rnd = Math.random, run = G.run; let res;
+  T.mode = 'fly'; refreshControls(); G.hooks.seenHint = true;
+  const before = dist(ball.pos, h.pin);
+  if (T.cat === 'putt') {
+    const b = ball.pos, base = Math.atan2(T.target.y - b.y, T.target.x - b.x);
+    res = puttRes(h, b, base + gauss(rnd) * sg.a * .5, (dist(b, T.target) + .3) * T.power * (1 + gauss(rnd) * sg.d * .3));
+  } else {
+    const ang = clamp(T.acc / .055, -3, 3) * sg.a * .9 + gauss(rnd) * sg.a * .4 + (T.power > 1.04 ? gauss(rnd) * sg.a * (T.power - 1) * 8 : 0);
+    res = resolveShot(h, { ...ball.pos }, ball.lie, T.target, { power: T.power * (1 + gauss(rnd) * sg.d * .45), ang }, T.cat, R.wind);
+    res.duff = T.power < .45;
+  }
+  res.cat = T.cat; res.before = before;
+  const q = shotQuality(h, T.cat, before, res);
+  applyShot(R, ball, res);
+  await animate(ball, res, false);
+  if (G.run !== run) return;
+  let msg = sassFor(res, ball, h);
+  const gain = G.hooks.xp ? G.hooks.xp(T.cat, Math.round(8 + 28 * q)) : null;
+  if (gain) msg += `<br><small>${SKILL_NAME[T.cat]} is now level ${gain}. Look at you.</small>`;
+  toast(msg, gain ? 3600 : 2600);
+  heckle(res);
+  G.turn = null; updateHud(); T.resolve();
+}
+function sassFor(res, ball, h) {
+  const s = k => pick(SASS[k]);
+  if (res.pickedUp) return s('pickup');
+  if (res.holed) return ball.strokes === 1 ? s('ace') : !res.putt ? s('chipin') : res.before > 8 ? s('bomb') : s('holed');
+  if (res.tapin) return res.putt ? s('tapin') : s('close');
+  if (res.event === 'water') return s('water');
+  if (res.event === 'ob') return s('ob');
+  if (res.duff) return s('duff');
+  if (res.putt && res.lie === 'green') { const gone = dist(res.from, res.end); return gone < res.before - .4 ? s('short') : res.minD < .35 ? s('long') : s('wide'); }
+  if (res.lie === 'green') return dist(res.end, h.pin) < 3 ? s('close') : s('green');
+  return s(res.lie === 'trees' ? 'trees' : res.lie === 'sand' ? 'sand' : res.lie === 'fairway' ? 'fairway' : 'rough');
+}
+// A rival passes comment on the human's shot.
+function heckle(res) {
+  const R = G.R, npcs = R.players.filter(p => !p.human); if (!npcs.length) return;
+  const bad = res.penalty || res.lie === 'sand' || res.lie === 'trees' || res.duff || res.pickedUp, good = (res.holed && res.before > 3) || (res.tapin && !res.putt);
+  if (bad) npcs.forEach(p => p.brain.note(`the human hit one ${res.event === 'water' ? 'into the water' : res.event === 'ob' ? 'out of bounds' : 'into trouble'} on hole ${R.hi + 1}`));
+  if ((bad || good) && Math.random() < .5) { const p = pick(npcs); chirp(p, cannedLine(p, bad ? 'needle' : 'grudge')); }
+}
+function animate(ball, res, npc, name) {
+  if (npc && G.skip) return Promise.resolve();
+  return new Promise(done => {
+    const h = G.R.h, land = res.event === 'water' && res.splash ? res.splash : (res.land || res.end);
+    if (res.putt) frame([res.from, h.pin, res.end], 3, 9); else frame([res.from, land, res.end, dist(res.end, h.pin) < 90 ? h.pin : null], 26, 70);
+    G.anim = { ball, res, land, t0: performance.now(), flight: res.putt ? 0 : clamp(450 + res.carry * 4.5, 500, 1700) * (npc ? .6 : 1), roll: res.putt ? 0 : Math.min(750, 260 + dist(land, res.end) * 18), rate: npc ? 2.6 : 1.5, done, name };
+  });
+}
+
+// ---------- rivals' shots ----------
+async function npcTurn(ball, pl, run) {
+  const R = G.R, h = R.h, live = () => { if (G.run !== run) throw ABORT; };
+  G.npcBall = ball; G.npcName = pl.short;
+  $('swing').classList.add('hidden'); $('meter').classList.add('hidden'); $('skip').classList.toggle('hidden', G.skip);
+  $('shotinfo').innerHTML = `<b style="color:${pl.color}">${esc(pl.name)}</b><br><span>${G.skip ? 'Fast-forwarding the others.' : `${LIE_NAME[ball.lie] || 'Rough'}, ${ball.lie === 'green' ? Math.round(dist(ball.pos, h.pin) * 3) + ' ft' : Math.round(dist(ball.pos, h.pin)) + ' yd'} out.`}</span>`;
+  if (!G.skip) { setWindBox(ball.lie === 'green'); if (ball.lie === 'green') frame([ball.pos, h.pin], 3, 9); else frame([ball.pos, h.pin], 30, 70); await sleep(420); live(); }
+  const res = npcShot(R, ball, pl);
+  await animate(ball, res, true, pl.short); live();
+  G.npcBall = null; G.npcName = null;
+  const good = (res.holed && res.before > 2.5) || (res.tapin && !res.putt), bad = res.penalty || res.pickedUp || (res.putt && !res.holed && !res.tapin && res.before < 2.5);
+  if (res.penalty) pl.brain.note(`I found ${res.event === 'water' ? 'the water' : 'trouble'} on hole ${R.hi + 1}`);
+  if (!G.skip && (good || bad) && Math.random() < .45) chirp(pl, cannedLine(pl, good ? 'brag' : 'sulk'));
+  if (!G.skip) { await sleep(res.holed || res.tapin ? 380 : 180); live(); }
+  updateHud();
+}
+async function wolfCall(run) {
+  const R = G.R, h = R.h, w = R.wolf, wolf = R.players[w.idx], n = i => i === 0 ? 'you' : R.players[i].short;
+  let choice;
+  if (wolf.human) {
+    const rows = R.players.map((p, i) => i === 0 ? '' : `<button class="btn" data-val="${i}">Partner with ${esc(p.short)} <span class="note">(${LIE_NAME[R.balls[i].lie] || 'rough'}, ${Math.round(dist(R.balls[i].pos, h.pin))} yd out${R.balls[i].strokes > 1 ? ', lying ' + R.balls[i].strokes : ''})</span></button>`).join('');
+    choice = +(await modal(`<p class="kicker">You’re the Wolf</p><h3>Pick your pack</h3><p>You are ${LIE_NAME[R.balls[0].lie] || 'in the rough'}, ${Math.round(dist(R.balls[0].pos, h.pin))} yd out. Win with a partner for 2 points each, or go alone for 4.</p>${rows}<button class="btn pink" data-val="-1">Go lone wolf</button>`));
+  } else {
+    choice = npcWolfChoice(wolf, w.idx, R.players, R.balls, h);
+    toast(choice < 0 ? `${esc(wolf.short)} is going lone wolf. Bold.` : `${esc(wolf.short)} is the Wolf and picks ${choice === 0 ? 'you. Don’t let it go to your head' : esc(n(choice))}.`, 3000);
+    await sleep(G.skip ? 0 : 1500);
+  }
+  if (G.run !== run) throw ABORT;
+  setWolf(R, choice); updateHud();
+}
+
+// ---------- the brains ----------
+function brainsThink(run, closing) {
+  const R = G.R; if (!AI.ok()) return [];
+  const me = R.players[0], npcs = R.players.filter(p => !p.human), k = closing ? 1 : Math.ceil(npcs.length / 2), chosen = [];
+  for (let j = 0; j < k; j++) { const p = npcs[(R.hi * k + j) % npcs.length]; if (!chosen.includes(p)) chosen.push(p); }
+  const toPar = i => { const s = R.strokes[i].reduce((a, b) => a + b, 0), par = R.results.reduce((a, r) => a + r.par, 0), d = s - par; return d === 0 ? 'level' : d > 0 ? '+' + d : String(d); };
+  const standings = `${statusText(R)}. Strokes to par so far: ${R.players.map((p, i) => `${p.human ? me.name : p.short} ${toPar(i)}`).join(', ')}.`;
+  return chosen.map(p => {
+    const i = R.players.indexOf(p), rec = (G.hooks.h2h && G.hooks.h2h(p.id)) || { w: 0, l: 0 }, last = R.results[R.results.length - 1], h = closing ? null : R.holes[R.hi % R.holes.length];
+    const moment = closing ? `The round has just finished. Final result for the human: ${closing}. Give your parting shot.`
+      : `Next up: hole ${R.hi + 1} of ${R.total}, "${h.name}", par ${h.par}, ${h.yards} yards${h.waters.length ? ', water in play' : ''}${h.bunkers.length > 2 ? ', heavily bunkered' : ''}.${R.fmt === 'wolf' ? (R.hi % 4 === i ? ' You are the Wolf on this hole.' : ` ${R.hi % 4 === 0 ? me.name : R.players[R.hi % 4].short} is the Wolf.`) : ''}${R.teams ? (i === 1 ? ` You are ${me.name}'s partner, so needle them affectionately.` : ` Your partner is ${R.players[i === 2 ? 3 : 2].short}.`) : ''}${last ? ` Last hole you made ${SCORE_NAME(last.strokes[i] - last.par).toLowerCase()} and ${me.name} made ${SCORE_NAME(last.strokes[0] - last.par).toLowerCase()}.` : ' This is the first tee.'}`;
+    return p.brain.think({ human: me.name, format: FORMATS[R.fmt].name, rules: FORMATS[R.fmt].rules, standings, moment, history: rec.w + rec.l ? `${rec.w + rec.l} previous rounds, the human won ${rec.w}, you finished ahead ${rec.l} times` : 'first time playing together' })
+      .then(r => { if (G.run !== run || !r) return null; if (!closing) { p.plan = r.strategy; p.wolfLean = r.wolf; chirp(p, r.line, true); } return { p, line: r.line }; }).catch(() => null);
+  });
+}
+
+// ---------- hole and round flow ----------
+async function playHole(run) {
+  const R = G.R, live = () => { if (G.run !== run) throw ABORT; }, me = R.players[0];
+  const h = startHole(R);
+  G.img = renderHole(h, R.theme); G.green = renderGreen(h, R.theme); G.outer = { lush: '#143820', links: '#4d4c2a', desert: '#7a5c38' }[R.theme] || '#143820';
+  G.turn = null; G.anim = null; G.npcBall = null; G.skip = false; G.overview = false; $('b-view').classList.remove('on');
+  frame([h.tee, h.pin, ...h.path], 30, 80, true); updateHud(); setWindBox(false);
+  $('shotinfo').innerHTML = ''; $('swing').classList.add('hidden'); $('meter').classList.add('hidden'); $('skip').classList.add('hidden');
+  let extra = '';
+  if (R.fmt === 'wolf') extra = R.wolf.idx === 0 ? 'You’re the Wolf this hole. Watch the tee shots, then choose.' : `${esc(R.players[R.wolf.idx].short)} is the Wolf this hole. Hit a good one and you might get picked.`;
+  if (R.fmt === 'foursomes') extra = R.hi % 2 === 0 ? `You tee off. ${esc(R.players[1].short)} plays the next one.` : `${esc(R.players[1].short)} tees off. You get whatever is left.`;
+  await modal(`<p class="kicker">Hole ${R.hi + 1} of ${R.total}</p><h3>${esc(h.name)}</h3><p><b>Par ${h.par}, ${h.yards} yards.</b> Wind ${R.wind.mph} mph.</p>${h.blurb ? `<p>${esc(h.blurb)}</p>` : ''}${extra ? `<p class="note">${extra}</p>` : ''}<button class="btn pink big" data-val="go">Tee it up</button>`);
+  live();
+  brainsThink(run);
+  for (;;) {
+    if (needsWolfCall(R)) await wolfCall(run);
+    const b = nextBall(R); if (!b) break;
+    const pl = R.players[hitterOf(R, b)];
+    if (pl.human) { await humanShot(b); live(); await sleep(650); live(); }
+    else await npcTurn(b, pl, run);
+  }
+  const out = finishHole(R);
+  R.players.forEach((p, i) => { if (!p.human) p.brain.note(`hole ${out.hole}: I made ${SCORE_NAME(out.strokes[i] - out.par).toLowerCase()}, the human made ${SCORE_NAME(out.strokes[0] - out.par).toLowerCase()}`); });
+  if (G.hooks.holeDone) G.hooks.holeDone(out);
+  updateHud(); G.skip = false; $('skip').classList.add('hidden'); $('shotinfo').innerHTML = '';
+  const pointsy = !MATCH_FORMATS.includes(R.fmt);
+  const rows = R.players.map((p, i) => `<tr class="${i === 0 ? 'me' : ''}"><td>${i === 0 ? 'You' : esc(p.short)}</td><td>${out.strokes[i]}</td><td>${SCORE_NAME(out.strokes[i] - out.par)}</td>${pointsy ? `<td>${out.delta[i] ? '+' + out.delta[i] : '0'}</td>` : ''}</tr>`).join('');
+  await modal(`<p class="kicker">${esc(h.name)}, par ${h.par}</p><h3>${esc(out.headline)}</h3>${out.sub ? `<p><b>${esc(out.sub)}</b></p>` : ''}<p>${SCORE_SASS(out.strokes[0] - out.par)}</p><table class="sc"><tr><th></th><th>Shots</th><th></th>${pointsy ? '<th>Pts</th>' : ''}</tr>${rows}</table><button class="btn pink big" data-val="go">${R.over ? 'See the damage' : 'Next hole'}</button>`);
+  live(); R.hi++;
+}
+async function playRound(R) {
+  const run = ++G.run; G.R = R; G.xp = {}; chirpQ.length = 0;
+  resizeCanvas(); startLoop();
+  try { while (!R.over) await playHole(run); } catch (e) { if (e !== ABORT) throw e; return; }
+  stopLoop(); if (G.onEnd) G.onEnd(R, run);
+}
+function scorecardHtml(R) {
+  const n = R.results.length, head = R.results.map(r => `<th>${r.hole}</th>`).join(''), pars = R.results.map(r => `<td>${r.par}</td>`).join('');
+  const rows = R.players.map((p, i) => `<tr class="${i === 0 ? 'me' : ''}"><td>${i === 0 ? 'You' : esc(p.short)}</td>${R.strokes[i].map((s, k) => `<td class="${s < R.results[k].par ? 'u' : s > R.results[k].par ? 'o' : ''}">${s}</td>`).join('')}<td><b>${R.strokes[i].reduce((a, b) => a + b, 0) || ''}</b></td>${MATCH_FORMATS.includes(R.fmt) ? '' : `<td><b>${R.pts[i]}</b></td>`}</tr>`).join('');
+  return n ? `<div class="scwrap"><table class="sc"><tr><th>Hole</th>${head}<th>Tot</th>${MATCH_FORMATS.includes(R.fmt) ? '' : '<th>Pts</th>'}</tr><tr class="o"><td>Par</td>${pars}<td>${R.results.reduce((a, r) => a + r.par, 0)}</td>${MATCH_FORMATS.includes(R.fmt) ? '' : '<td></td>'}</tr>${rows}</table></div>` : '<p class="note">Nothing on the card yet. Go and hit something.</p>';
+}
+function quitRound() { G.run++; G.turn = null; G.anim = null; stopLoop(); document.querySelectorAll('#s-play .modal').forEach(m => m.remove()); }
+
+function bindPlay() {
+  const cv = $('cv'); G.ctx = cv.getContext('2d');
+  const world = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left - G.cw / 2) / G.cam.s + G.cam.x, y: (e.clientY - r.top - G.cyU) / G.cam.s + G.cam.y }; };
+  cv.addEventListener('pointerdown', e => { const T = G.turn; if (!T) return; if (T.mode === 'aim') { G.drag = true; try { cv.setPointerCapture(e.pointerId); } catch (_) {} setTarget(world(e)); } else onSwing(); });
+  cv.addEventListener('pointermove', e => { if (G.drag && G.turn && G.turn.mode === 'aim') setTarget(world(e)); });
+  const up = () => { G.drag = false; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  $('swing').addEventListener('click', onSwing);
+  $('skip').addEventListener('click', () => { G.skip = true; $('skip').classList.add('hidden'); if (G.anim) { const a = G.anim; G.anim = null; a.done(); } });
+  window.addEventListener('resize', () => { if (!$('s-play').classList.contains('hidden')) { resizeCanvas(); aimCamera(); } });
+  window.addEventListener('keydown', e => {
+    const T = G.turn; if (!T || $('s-play').classList.contains('hidden') || document.querySelector('#s-play .modal')) return;
+    if (e.code === 'Space' || e.code === 'Enter') { if (e.target === $('swing')) return; e.preventDefault(); onSwing(); }
+    else if (T.mode === 'aim' && e.code.startsWith('Arrow')) {
+      e.preventDefault(); const b = T.ball.pos, st = T.cat === 'putt' ? .25 : 3; let a = Math.atan2(T.target.y - b.y, T.target.x - b.x), d = dist(b, T.target);
+      if (e.code === 'ArrowLeft') a -= st / Math.max(d, 4); if (e.code === 'ArrowRight') a += st / Math.max(d, 4); if (e.code === 'ArrowUp') d += st; if (e.code === 'ArrowDown') d -= st;
+      setTarget({ x: b.x + Math.cos(a) * d, y: b.y + Math.sin(a) * d });
+    }
+  });
+}
+
+// ---------- 09-app: saves, menus, the Course Forger screen, boot ----------
+const freshSkills = g => Object.fromEntries(SKILLS.map(k => [k, { lvl: g.skills[k], xp: 0 }]));
+let save = { v: 1, golfer: null, golfers: {}, stats: { rounds: 0, wins: 0, holes: 0 }, h2h: {}, ai: true, t: 0 };
+let courses = [];
+const Store = {
+  col: null, chains: {},
+  async init() { try { const c = window.claude; if (!c || !c.use) return; const [db, user] = await Promise.all([c.use('db'), c.use('user')]); const id = user && await user.id(); if (db && id) this.col = db.collection('data/users/' + id); } catch (e) { this.col = null; } },
+  put(key, data) { if (!this.col) return; const col = this.col; this.chains[key] = (this.chains[key] || Promise.resolve()).then(() => col.doc(key).set(data)).catch(() => {}); },
+  del(key) { if (!this.col) return; const col = this.col; this.chains[key] = (this.chains[key] || Promise.resolve()).then(() => col.doc(key).delete()).catch(() => {}); },
+  async pull() {
+    if (!this.col) return null;
+    try {
+      const snap = await Promise.race([this.col.get(), sleep(10000).then(() => null)]); if (!snap) return null;
+      const out = { courses: [] };
+      for (const d of snap.docs) { const v = d.data(); if (!v) continue; if (d.id === 'career') out.career = v; else if (d.id.startsWith('course_')) out.courses.push(v); }
+      return out;
+    } catch (e) { return null; }
+  },
+};
+function loadLocal() {
+  try { const s = JSON.parse(localStorage.getItem('badlies.save') || 'null'); if (s && s.v === 1) save = Object.assign(save, s); } catch (e) {}
+  try { const c = JSON.parse(localStorage.getItem('badlies.courses') || '[]'); if (Array.isArray(c)) courses = c; } catch (e) {}
+}
+function saveLocal() { save.t = Date.now(); try { localStorage.setItem('badlies.save', JSON.stringify(save)); } catch (e) {} }
+function persist() { saveLocal(); Store.put('career', save); }
+function saveCourses() { try { localStorage.setItem('badlies.courses', JSON.stringify(courses)); } catch (e) {} }
+const golfer = () => GOLFERS.find(g => g.id === save.golfer);
+const mySkills = () => save.golfers[save.golfer];
+const initials = n => n.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('');
+const badge = (name, color) => `<span class="badge" style="background:${color}">${esc(initials(name))}</span>`;
+const skillBars = (lv, xp) => `<div class="bars">${SKILLS.map(k => `<span>${SKILL_NAME[k]}</span><span class="bar"><i style="width:${lv[k] * 10}%"></i></span><b>${lv[k]}</b>${xp ? `<span class="note">next level</span><span class="bar xp"><i style="width:${xp[k].lvl >= MAX_LEVEL ? 100 : xp[k].xp / xpNeed(xp[k].lvl) * 100}%"></i></span><span class="note">${xp[k].lvl >= MAX_LEVEL ? 'max' : xp[k].xp + '/' + xpNeed(xp[k].lvl)}</span>` : ''}`).join('')}</div>`;
+
+// ---------- navigation ----------
+const nav = [];
+let U = { fmt: 'stableford', total: 6, course: 'sodden', rivals: [] };
+let F = { tab: 'words', holes: [], name: '', theme: 'lush', busy: false, msg: '', file: null, lat: '', sel: 0 };
+let lastRound = null;
+function show(screen) { for (const s of ['title', 'page', 'play']) $('s-' + s).classList.toggle('hidden', s !== screen); if (screen !== 'play') stopLoop(); }
+function go(page, replace) {
+  if (!replace) nav.push(page); else nav[nav.length - 1] = page;
+  show('page'); renderPage(); $('s-page').scrollTop = 0;
+}
+function back() { nav.pop(); if (nav.length) { show('page'); renderPage(); } else home(); }
+function home() { nav.length = 0; show('title'); titleFoot(); }
+function titleFoot() {
+  const g = golfer();
+  $('title-foot').textContent = g ? `Playing as ${g.name}. ${save.stats.rounds} round${save.stats.rounds === 1 ? '' : 's'}, ${save.stats.wins} win${save.stats.wins === 1 ? '' : 's'}.` : 'No golfer yet. Pick one and start embarrassing yourself.';
+}
+const PAGES = {
+  golfer: ['Pick your golfer', pageGolfer], setup: ['Set up the round', pageSetup], locker: ['Locker room', pageLocker],
+  rivals: ['The rivals', pageRivals], forge: ['Course Forger', pageForge], result: ['The damage', pageResult],
+};
+function renderPage(keepScroll) {
+  const p = nav[nav.length - 1], st = $('s-page').scrollTop; if (!p) return;
+  $('page-title').textContent = PAGES[p][0]; $('page').innerHTML = PAGES[p][1]();
+  if (PAGES[p][2]) PAGES[p][2]();
+  if (keepScroll) $('s-page').scrollTop = st;
+}
+
+// ---------- pages ----------
+function pageGolfer() {
+  return `<p class="lede">Everyone starts bad at most things. Play shots, earn experience in that skill, get less bad.</p><div class="grid2">${GOLFERS.map(g => {
+    const sk = save.golfers[g.id];
+    return `<button class="pick" data-act="golfer" data-id="${g.id}" aria-pressed="${save.golfer === g.id}"><span class="who">${badge(g.name, g.color)}<span><h3>${esc(g.name)}</h3><span class="note">${esc(g.tag)}</span></span></span>${skillBars(sk ? levels(sk) : g.skills)}</button>`;
+  }).join('')}</div>`;
+}
+function pageSetup() {
+  const f = FORMATS[U.fmt], need = f.n - 1, all = [...BUILTIN.map(c => ({ id: c.id, name: c.name, tag: c.tag })), ...courses.map(c => ({ id: c.id, name: c.name, tag: `${c.holes.length} hole${c.holes.length === 1 ? '' : 's'}, forged by you.` }))];
+  const who = U.fmt === 'stableford' ? 'Pick three to play alongside. The other five are out on the course too.' : f.teams ? 'Pick three. The first one is your partner, so choose with your head.' : `Pick ${need === 1 ? 'your opponent' : need + ' opponents'}.`;
+  const st = AI.status();
+  return `<h3 class="sec">The game</h3><div class="grid2">${Object.entries(FORMATS).map(([id, x]) => `<button class="pick" data-act="fmt" data-id="${id}" aria-pressed="${U.fmt === id}"><h3>${x.name}</h3><span class="note">${x.blurb}</span></button>`).join('')}</div>
+  <h3 class="sec">How long have you got?</h3><div class="rowwrap">${[3, 6, 9].map(n => `<button class="chip" data-act="len" data-id="${n}" aria-pressed="${U.total === n}" style="padding-left:14px">${n} holes</button>`).join('')}</div>
+  <h3 class="sec">The course</h3><div class="grid2">${all.map(c => `<button class="pick" data-act="course" data-id="${esc(c.id)}" aria-pressed="${U.course === c.id}"><h3>${esc(c.name)}</h3><span class="note">${esc(c.tag)}</span></button>`).join('')}</div>
+  <h3 class="sec">The company</h3><p class="note">${who} Leave it short and I’ll fill the gaps with whoever is loitering by the first tee.</p>
+  <div class="rowwrap">${NPCS.map(n => { const i = U.rivals.indexOf(n.id); return `<button class="chip" data-act="rival" data-id="${n.id}" aria-pressed="${i >= 0}"><i class="dot" style="background:${n.color}"></i>${esc(n.short)}${i === 0 && f.teams ? ' (partner)' : ''}</button>`; }).join('')}</div>
+  <div class="card"><div class="rowwrap" style="justify-content:space-between"><b>Rival brains</b><button class="btn small ${save.ai && st !== 'offline' && st !== 'declined' ? 'yellow' : ''}" data-act="ai" ${st === 'offline' || st === 'declined' ? 'disabled' : ''}>${st === 'offline' ? 'Unavailable here' : st === 'declined' ? 'Declined' : save.ai ? 'On' : 'Off'}</button></div>
+  <p class="note">${st === 'offline' ? 'Each rival still plays to their own personality, they just stick to their stock insults.' : 'Each rival has their own Claude-powered brain that sets their strategy and trash talk hole by hole. It uses a little of your Claude usage; the first call asks your permission.'}</p></div>
+  <div class="sticky-cta"><button class="btn pink big" data-act="tee">Tee off</button></div>`;
+}
+function pageLocker() {
+  const g = golfer();
+  if (!g) return `<p class="lede">No golfer in here yet. The lockers are empty and so is your trophy cabinet.</p><button class="btn pink big" data-act="go" data-to="golfer">Pick a golfer</button>`;
+  const sk = mySkills(), s = save.stats;
+  return `<div class="card"><div class="who">${badge(g.name, g.color)}<span><h3 style="font-size:1.6rem">${esc(g.name)}</h3><span class="note">${esc(g.tag)}</span></span></div>${skillBars(levels(sk), sk)}</div>
+  <p class="note">Every shot you hit earns experience in its skill: tee shots for Driving, full shots for Approach, anything inside 55 yards for Chipping, bunker shots for Sand play, and putts for Putting. Better shots earn more. Higher levels hit it further and straighter, slow the swing meter and show more of the putting line.</p>
+  <div class="card"><b>Career</b><p>${s.rounds} round${s.rounds === 1 ? '' : 's'} played, ${s.wins} won, ${s.holes} holes survived.</p></div>
+  <div class="rowwrap"><button class="btn" data-act="go" data-to="golfer">Change golfer</button><button class="btn pink" data-act="play">Play a round</button></div>`;
+}
+function pageRivals() {
+  const st = AI.status();
+  return `<p class="lede">Eight regulars, eight separate agents. Each one picks their own shots, tilts in their own way, and holds their own grudges against you.</p>
+  <p class="note">Brains are ${st === 'live' ? 'live: each rival thinks for themselves between holes.' : st === 'offline' ? 'offline in this view, so they play on instinct and stock insults.' : st + '.'}</p>
+  <div class="grid2">${NPCS.map(n => { const r = save.h2h[n.id]; return `<div class="card"><div class="who">${badge(n.name, n.color)}<span><h3 style="font-size:1.3rem">${esc(n.name)}</h3><span class="note">${r && r.w + r.l ? (r.w > r.l ? `You lead ${r.w}–${r.l}` : r.w < r.l ? `They lead ${r.l}–${r.w}` : `Level at ${r.w}–${r.l}`) : 'You haven’t met yet'}</span></span></div><p style="margin-top:8px">${esc(n.bio)}</p>${skillBars(n.skills)}<p class="note" style="margin-top:8px">Risk appetite ${Math.round(n.aggr * 10)}/10. Tilts ${n.tilt > .6 ? 'badly' : n.tilt > .3 ? 'a bit' : 'almost never'}. Reads the wind ${n.savvy > .8 ? 'like a book' : n.savvy > .45 ? 'well enough' : 'like a horoscope'}.</p></div>`; }).join('')}</div>`;
+}
+function pageResult() {
+  const L = lastRound; if (!L) return '';
+  const { R, st, gains, ups } = L;
+  const head = st.tied ? 'A tie. Deeply unsatisfying.' : st.won ? 'You won. Insufferable.' : pick(['You lost. Shocking nobody.', 'Beaten. Again.', 'Well, you turned up.']);
+  const line = st.match ? st.text + '.' : `You finished ${['', '1st', '2nd', '3rd'][st.rank] || st.rank + 'th'} of ${st.rows.length} with ${R.pts[0]} point${R.pts[0] === 1 ? '' : 's'}.`;
+  const table = st.match ? '' : `<table class="sc"><tr><th>Player</th><th>Points</th></tr>${st.rows.map(r => `<tr class="${r.human ? 'me' : ''}"><td>${esc(r.human ? 'You' : r.name)}</td><td>${r.score}</td></tr>`).join('')}</table>`;
+  const xp = SKILLS.filter(k => gains[k]).map(k => `<li><b>${SKILL_NAME[k]}</b> +${gains[k]} XP${ups.includes(k) ? `, now level ${mySkills()[k].lvl}` : ''}</li>`).join('');
+  return `<h3 class="verdict">${head}</h3><p class="lede"><b>${esc(line)}</b> ${esc(FORMATS[R.fmt].name)} over ${R.results.length} hole${R.results.length === 1 ? '' : 's'} at ${esc(R.courseName)}.</p>
+  <div class="quote"><p id="quote">${esc(L.quote.line)}</p><p class="note" id="quote-by">${esc(L.quote.by)}</p></div>
+  ${table}<h3 class="sec">The card</h3>${scorecardHtml(R)}
+  <h3 class="sec">What you learned</h3><ul style="margin:0;padding-left:20px">${xp || '<li>Nothing. Somehow.</li>'}${st.won && !st.tied ? '<li>Winner’s bonus: +25 XP in everything.</li>' : ''}</ul>
+  <div class="rowwrap"><button class="btn pink big" data-act="again">Go again</button><button class="btn" data-act="home">Clubhouse</button></div>`;
+}
+
+// ---------- round start / end ----------
+function teeOff() {
+  if (!save.golfer) return go('golfer');
+  const f = FORMATS[U.fmt], g = golfer(), C = getCourse(U.course, courses);
+  let ids = U.rivals.slice(0, f.n - 1);
+  for (const n of shuffle(NPCS)) if (ids.length < f.n - 1 && !ids.includes(n.id)) ids.push(n.id);
+  const mk = n => ({ ...n, skills: { ...n.skills }, brain: new Brain(n) });
+  const me = { id: 'me', name: g.name, short: 'You', human: true, color: '#ffffff', skills: levels(mySkills()) };
+  const R = newRound({ format: U.fmt, holes: C.holes, total: U.total, theme: C.theme, courseName: C.name, seed: Date.now() >>> 0, players: [me, ...ids.map(id => mk(NPCS.find(n => n.id === id)))], field: U.fmt === 'stableford' ? NPCS.filter(n => !ids.includes(n.id)).map(mk) : [] });
+  AI.enabled = save.ai; G.hooks.seenHint = save.stats.holes > 0;
+  show('play'); playRound(R);
+}
+G.hooks.xp = (cat, amt) => { const sk = mySkills(), before = sk[cat].lvl; addXp(sk, cat, amt); G.xp[cat] = (G.xp[cat] || 0) + amt; saveLocal(); if (sk[cat].lvl > before) { G.R.players[0].skills[cat] = sk[cat].lvl; (G.ups = G.ups || []).push(cat); return sk[cat].lvl; } return null; };
+G.hooks.holeDone = () => { save.stats.holes++; persist(); };
+G.hooks.h2h = id => save.h2h[id];
+G.onEnd = (R, run) => {
+  const st = standings(R), won = st.won && !st.tied, gains = { ...G.xp }, ups = (G.ups || []).slice(); G.ups = [];
+  save.stats.rounds++; if (won) { save.stats.wins++; for (const k of SKILLS) { const b = mySkills()[k].lvl; addXp(mySkills(), k, 25); if (mySkills()[k].lvl > b) ups.push(k); } }
+  R.players.forEach((p, i) => {
+    if (p.human || (R.teams && i === 1)) return;
+    const r = save.h2h[p.id] = save.h2h[p.id] || { w: 0, l: 0 }, d = st.match ? R.up : R.pts[0] - R.pts[i];
+    if (d > 0) r.w++; else if (d < 0) r.l++;
+  });
+  persist();
+  const rival = R.players[R.teams ? 2 : 1], q = { line: cannedLine(rival, won ? 'grudge' : st.tied ? 'sulk' : 'brag'), by: rival.name };
+  lastRound = { R, st, gains, ups, quote: q };
+  nav.length = 0; go('result');
+  const verdict = st.match ? st.text : `finished ${st.rank} of ${st.rows.length}${won ? ' and won' : ''}`;
+  const calls = brainsThink(run, verdict);
+  if (calls[0]) calls[0].then(r => { if (r && lastRound && lastRound.R === R) { q.line = r.line; q.by = r.p.name; if ($('quote')) { $('quote').textContent = r.line; $('quote-by').textContent = r.p.name; } } });
+};
+
+// ---------- Course Forger ----------
+function sampleGeo() {
+  // A pretend OpenStreetMap export, built from three house holes, so the importer has something to chew on.
+  const C = getCourse('sodden'), lat0 = 51.2345, lon0 = -0.5432, kx = Math.cos(lat0 * Math.PI / 180) * 111320 * YD, ky = 110540 * YD, feats = [];
+  [0, 1, 4].forEach((hi, k) => {
+    const h = C.holes[hi], ll = p => [+(lon0 + (p.x + k * 320) / kx).toFixed(6), +(lat0 - p.y / ky).toFixed(6)], ring = poly => [[...poly.map(ll), ll(poly[0])]];
+    const add = (tags, type, coordinates) => feats.push({ type: 'Feature', properties: tags, geometry: { type, coordinates } });
+    add({ golf: 'hole', ref: String(k + 1), par: String(h.par), name: h.name }, 'LineString', h.path.filter((p, i) => i % 12 === 0 || i === h.path.length - 1).map(ll));
+    h.fairways.forEach(p => add({ golf: 'fairway' }, 'Polygon', ring(p))); h.greens.forEach(p => add({ golf: 'green' }, 'Polygon', ring(p)));
+    h.bunkers.forEach(p => add({ golf: 'bunker' }, 'Polygon', ring(p))); h.waters.forEach(p => add({ natural: 'water' }, 'Polygon', ring(p)));
+    add({ golf: 'tee' }, 'Polygon', ring(h.teeBox)); h.trees.filter((t, i) => i % 2 === 0).forEach(t => add({ natural: 'tree' }, 'Point', ll(t)));
+  });
+  return JSON.stringify({ type: 'FeatureCollection', features: feats });
+}
+function pageForge() {
+  const aiOk = AI.sample && !AI.denied, tabs = [['words', 'Describe it'], ['shot', 'Map screenshot'], ['data', 'Map data']];
+  const ll = F.lat.match(/(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)/);
+  let panel;
+  if (F.tab === 'words') panel = `<p>Tell me about a hole and I’ll lay it out. Real or imaginary, I’m not fussy.</p><textarea id="f-words" placeholder="A 410-yard par 4 that doglegs left around a lake, with a tiny green ringed by bunkers.">${esc(F.words || '')}</textarea><button class="btn pink" data-act="f-words" ${F.busy ? 'disabled' : ''}>Design this hole</button>${aiOk ? '' : '<p class="note">Claude isn’t available in this view, so I’ll build it from keywords: par, yards, dogleg left or right, water, bunkers, tight, trees.</p>'}`;
+  else if (F.tab === 'shot') panel = `<p>Open the course in Google Maps (satellite view is best), frame one hole so the tee and the green are both in shot, take a screenshot and hand it over. I’ll survey it and repaint it.</p>
+    <div class="rowwrap"><button class="btn" data-act="f-pick-img">${F.file ? 'Change screenshot' : 'Choose a screenshot'}</button><span class="note">${F.file ? esc(F.file.name) : 'No file yet.'}</span></div>
+    <input type="text" id="f-hint" placeholder="Anything I should know? e.g. plays bottom-left to top-right, about 410 yards" value="${esc(F.hint || '')}">
+    <button class="btn pink" data-act="f-shot" ${F.busy || !F.file || !aiOk ? 'disabled' : ''}>Survey this hole</button>${aiOk ? '<p class="note">The screenshot is sent to Claude on your account to be traced. It isn’t stored anywhere else.</p>' : '<p class="note">Surveying a screenshot needs Claude’s eyes, which aren’t available in this view. The other two tabs still work.</p>'}`;
+  else panel = `<p>For exact geometry, feed me OpenStreetMap data for the course. One paste can build all eighteen.</p>
+    <ol style="margin:0;padding-left:20px;display:grid;gap:6px"><li>In Google Maps, long-press the clubhouse and copy the coordinates. Paste them here:<input type="text" id="f-lat" placeholder="51.2345, -0.5432" value="${esc(F.lat)}" style="margin-top:6px"></li>
+    <li>Run this query at overpass-turbo.eu:<pre class="code" id="f-query">${esc(ll ? OVERPASS_QUERY(ll[1], ll[2]) : OVERPASS_QUERY('LAT', 'LON'))}</pre><button class="btn small" data-act="f-copy" style="margin-top:6px">Copy query</button></li>
+    <li>Export as GeoJSON (or raw data), then paste it below or choose the file.</li></ol>
+    <textarea id="f-geo" placeholder='{"type":"FeatureCollection","features":[...]}'>${esc(F.geo || '')}</textarea>
+    <div class="rowwrap"><button class="btn pink" data-act="f-geo" ${F.busy ? 'disabled' : ''}>Build from map data</button><button class="btn" data-act="f-pick-geo">Choose a file</button><button class="btn" data-act="f-sample">Try the sample</button></div>`;
+  const cur = F.holes[F.sel];
+  const board = F.holes.length ? `<h3 class="sec">On the drawing board</h3>
+    <div class="thumbs" id="f-thumbs">${F.holes.map((h, i) => `<figure data-act="f-sel" data-id="${i}" style="cursor:pointer;${i === F.sel ? 'font-weight:800' : ''}"><span data-thumb="${i}"></span>${i + 1}. ${esc(h.name)}</figure>`).join('')}</div>
+    ${cur ? `<div class="card"><b>${esc(cur.name)}</b>, par ${cur.par}, ${cur.yards} yards. ${cur.bunkers.length} bunker${cur.bunkers.length === 1 ? '' : 's'}, ${cur.waters.length ? 'water in play' : 'no water'}, ${cur.trees.length} trees.${cur.blurb ? `<p class="note">${esc(cur.blurb)}</p>` : ''}<div class="rowwrap" style="margin-top:8px"><button class="btn small" data-act="f-del">Scrap this hole</button></div></div><div id="f-preview"></div>` : ''}
+    <label><b>Course name</b><input type="text" id="f-name" value="${esc(F.name)}" placeholder="Royal Something-or-Other"></label>
+    <div class="rowwrap"><b>Look</b>${Object.entries(THEMES).map(([id, t]) => `<button class="chip" style="padding-left:14px" data-act="f-theme" data-id="${id}" aria-pressed="${F.theme === id}">${t.label}</button>`).join('')}</div>
+    <button class="btn yellow big" data-act="f-save">Save and play this course</button>` : '';
+  const saved = courses.length ? `<h3 class="sec">Your courses</h3>${courses.map(c => `<div class="card rowwrap" style="justify-content:space-between"><span><b>${esc(c.name)}</b><br><span class="note">${c.holes.length} hole${c.holes.length === 1 ? '' : 's'}, ${THEMES[c.theme] ? THEMES[c.theme].label.toLowerCase() : 'parkland'}</span></span><span class="rowwrap"><button class="btn small pink" data-act="f-play" data-id="${esc(c.id)}">Play</button><button class="btn small" data-act="f-rm" data-id="${esc(c.id)}">Delete</button></span></div>`).join('')}` : '';
+  return `<p class="lede">Hand me a real course and I’ll repaint it in the house style: striped fairways, shadowed bunkers, the lot. Then you can go and ruin it.</p>
+  <div class="tabs">${tabs.map(([id, l]) => `<button class="chip" style="padding-left:14px" data-act="f-tab" data-id="${id}" aria-pressed="${F.tab === id}">${l}</button>`).join('')}</div>
+  <div class="card" style="display:grid;gap:12px">${panel}${F.msg ? `<p role="status"><b>${esc(F.msg)}</b></p>` : ''}</div>${board}${saved}`;
+}
+PAGES.forge[2] = () => {
+  F.holes.forEach((h, i) => { const slot = document.querySelector(`[data-thumb="${i}"]`); if (!slot) return; h._img = h._theme === F.theme && h._img ? h._img : renderRegion(h, F.theme, 0, 0, h.w, h.h, 1.2); h._theme = F.theme; const c = document.createElement('canvas'); c.width = h._img.width; c.height = h._img.height; c.getContext('2d').drawImage(h._img, 0, 0); slot.replaceWith(c); });
+  const cur = F.holes[F.sel], box = $('f-preview');
+  if (cur && box) { const r = renderHole(cur, F.theme).cv; r.className = 'preview'; const x = r.getContext('2d'), S = r.width / cur.w, p = cur.pin; x.setTransform(S, 0, 0, S, 0, 0); x.strokeStyle = '#fff'; x.lineWidth = 1; x.beginPath(); x.moveTo(p.x, p.y); x.lineTo(p.x, p.y - 12); x.stroke(); x.fillStyle = '#FF4F8B'; x.beginPath(); x.moveTo(p.x, p.y - 12); x.lineTo(p.x + 7, p.y - 9.5); x.lineTo(p.x, p.y - 7); x.fill(); box.appendChild(r); }
+};
+function forgeRead() { for (const [id, k] of [['f-words', 'words'], ['f-hint', 'hint'], ['f-lat', 'lat'], ['f-geo', 'geo'], ['f-name', 'name']]) if ($(id)) F[k] = $(id).value; }
+function forgeAdd(holes, msg) { F.holes.push(...holes); F.holes = F.holes.slice(0, 18); F.sel = F.holes.length - 1; F.msg = msg; F.busy = false; renderPage(true); const b = $('f-preview'); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+function forgeFail(e) { F.busy = false; F.msg = (e && e.message) || 'That didn’t work. Try again with something clearer.'; renderPage(true); }
+async function forgeWords() {
+  forgeRead(); const text = (F.words || '').trim(); if (!text) { F.msg = 'Give me something to work with. A par and a shape will do.'; return renderPage(true); }
+  F.busy = true; F.msg = 'Sketching…'; renderPage(true);
+  const seed = hashStr(text) + F.holes.length;
+  try {
+    let h = null;
+    if (AI.sample && !AI.denied) { try { const spec = await AI.sample.json(surveyPrompt('text', text.slice(0, 600)), { modelTier: 'default' }); h = specToHole(spec, .5, seed); } catch (e) { if (e && e.code === 'not_granted') AI.denied = true; } }
+    if (!h) h = describeLocally(text, seed);
+    forgeAdd([h], `Done: ${h.name}, par ${h.par}, ${h.yards} yards.`);
+  } catch (e) { forgeFail(e); }
+}
+async function forgeShot() {
+  forgeRead(); if (!F.file) return; F.busy = true; F.msg = 'Surveying. This takes a little while; I’m counting bunkers.'; renderPage(true);
+  try {
+    const { blob, aspect } = await downscale(F.file);
+    const spec = await AI.sample.json(surveyPrompt('image', (F.hint || '').slice(0, 300)), { images: [blob], modelTier: 'default' });
+    const h = specToHole(spec, aspect, hashStr(F.file.name + F.file.size));
+    forgeAdd([h], `Surveyed: ${h.name}, par ${h.par}, about ${h.yards} yards.`);
+  } catch (e) {
+    const c = e && e.code; if (c === 'not_granted') AI.denied = true;
+    forgeFail(c ? new Error(c === 'not_granted' ? 'No permission to use Claude, so no survey. The other tabs still work.' : c === 'rate_limited' ? 'Claude is catching its breath. Give it a minute and try again.' : c === 'images_unavailable' || c === 'image_rejected' ? 'That image couldn’t be sent. Try a smaller PNG or JPEG.' : 'The survey came back garbled. Try again, or frame the hole more tightly.') : e);
+  }
+}
+function forgeGeo(text) {
+  forgeRead(); const src = text || F.geo || ''; if (!src.trim()) { F.msg = 'Paste some map data first, or try the sample.'; return renderPage(true); }
+  try { const { holes, notes } = importGeo(src); forgeAdd(holes, `Built ${holes.length} hole${holes.length === 1 ? '' : 's'} from the map data. ${notes.join(' ')}`); }
+  catch (e) { forgeFail(e instanceof SyntaxError ? new Error('That isn’t valid JSON. Export GeoJSON or raw data from Overpass Turbo and paste the whole thing.') : e); }
+}
+function forgeSave() {
+  forgeRead(); if (!F.holes.length) return;
+  const c = { id: 'c' + Date.now().toString(36), name: (F.name || '').trim().slice(0, 48) || 'Unnamed Municipal', theme: F.theme, holes: F.holes.map(packHole) };
+  courses.push(c); saveCourses(); Store.put('course_' + c.id, c);
+  F = { ...F, holes: [], name: '', msg: '', sel: 0 }; U.course = c.id;
+  if (!save.golfer) { G.afterGolfer = 'setup'; go('golfer'); } else go('setup');
+}
+
+// ---------- events ----------
+const ACTS = {
+  play() { if (!save.golfer) { nav.length = 0; go('golfer'); G.afterGolfer = 'setup'; } else { nav.length = 0; go('setup'); } },
+  go(d) { go(d.to); }, back, home,
+  golfer(d) { const g = GOLFERS.find(x => x.id === d.id); save.golfer = g.id; if (!save.golfers[g.id]) save.golfers[g.id] = freshSkills(g); persist(); if (G.afterGolfer) { const to = G.afterGolfer; G.afterGolfer = null; go(to, true); } else if (nav.length > 1) back(); else renderPage(true); },
+  fmt(d) { U.fmt = d.id; U.rivals = U.rivals.slice(0, FORMATS[U.fmt].n - 1); renderPage(true); },
+  len(d) { U.total = +d.id; renderPage(true); },
+  course(d) { U.course = d.id; renderPage(true); },
+  rival(d) { const i = U.rivals.indexOf(d.id), need = FORMATS[U.fmt].n - 1; if (i >= 0) U.rivals.splice(i, 1); else { U.rivals.push(d.id); if (U.rivals.length > need) U.rivals.shift(); } renderPage(true); },
+  ai() { save.ai = !save.ai; persist(); renderPage(true); },
+  tee: teeOff, again: teeOff,
+  async quit() { if (await modal(`<h3>Walking off?</h3><p>Your experience is safe. Your reputation is not.</p><button class="btn" data-val="no">Keep playing</button><button class="btn pink" data-val="yes">Walk off</button>`) === 'yes') { quitRound(); persist(); home(); } },
+  view() { G.overview = !G.overview; $('b-view').classList.toggle('on', G.overview); const h = G.R.h; if (G.turn) aimCamera(); else if (G.overview) frame([h.tee, h.pin, ...h.path], 30, 80); },
+  card() { modal(`<h3>The card</h3><p class="note">${esc(FORMATS[G.R.fmt].name)} at ${esc(G.R.courseName)}. ${esc(statusText(G.R))}</p>${scorecardHtml(G.R)}<button class="btn pink" data-val="x">Back to it</button>`); },
+  'f-tab'(d) { forgeRead(); F.tab = d.id; F.msg = ''; renderPage(true); },
+  'f-words': forgeWords, 'f-shot': forgeShot, 'f-geo'() { forgeGeo(); },
+  'f-sample'() { forgeGeo(sampleGeo()); },
+  'f-pick-img'() { forgeRead(); $('file-img').click(); }, 'f-pick-geo'() { forgeRead(); $('file-geo').click(); },
+  'f-copy'() { forgeRead(); const t = $('f-query').textContent; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => { F.msg = 'Query copied.'; renderPage(true); }, () => { F.msg = 'Couldn’t reach the clipboard. Select the query and copy it by hand.'; renderPage(true); }); },
+  'f-sel'(d) { forgeRead(); F.sel = +d.id; renderPage(true); },
+  'f-del'() { forgeRead(); F.holes.splice(F.sel, 1); F.sel = Math.max(0, F.sel - 1); F.msg = ''; renderPage(true); },
+  'f-theme'(d) { forgeRead(); F.theme = d.id; renderPage(true); },
+  'f-save': forgeSave,
+  'f-play'(d) { U.course = d.id; if (!save.golfer) { G.afterGolfer = 'setup'; go('golfer'); } else go('setup'); },
+  'f-rm'(d) { courses = courses.filter(c => c.id !== d.id); delete holeCache[d.id]; saveCourses(); Store.del('course_' + d.id); if (U.course === d.id) U.course = 'sodden'; renderPage(true); },
+};
+function boot() {
+  loadLocal(); bindPlay(); titleFoot();
+  document.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b && ACTS[b.dataset.act] && !b.disabled) ACTS[b.dataset.act](b.dataset); });
+  document.addEventListener('change', e => { if (e.target.id === 'f-lat') { forgeRead(); renderPage(true); } });
+  $('file-img').addEventListener('change', e => { F.file = e.target.files[0] || null; F.msg = ''; e.target.value = ''; renderPage(true); });
+  $('file-geo').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { F.geo = ''; forgeGeo(await f.text()); } catch (err) { forgeFail(err); } });
+  // title backdrop: one of the house holes, painted by the same renderer the game uses
+  setTimeout(() => { try { const h = getCourse('sodden').holes[4], r = renderRegion(h, 'lush', 0, 0, h.w, h.h, 2.2), bg = $('title-bg'); bg.width = r.width; bg.height = r.height; bg.getContext('2d').drawImage(r, 0, 0); } catch (e) {} }, 30);
+  AI.init();
+  Store.init().then(() => Store.pull()).then(remote => {
+    if (!remote) return;
+    if (remote.career && remote.career.v === 1 && (remote.career.t || 0) > (save.t || 0) && $('s-play').classList.contains('hidden')) { save = Object.assign(save, remote.career); saveLocal(); }
+    for (const c of remote.courses) if (c && c.id && Array.isArray(c.holes) && !courses.some(x => x.id === c.id)) courses.push(c);
+    saveCourses(); titleFoot(); if (nav.length && !$('s-page').classList.contains('hidden')) { forgeRead(); renderPage(true); }
+  });
+  window.__badlies = { G, AI, get save() { return save; }, importGeo, sampleGeo, describeLocally, specToHole, onSwing };
+}
+boot();
+
+})();
+</script>
+</body>
+</html>
