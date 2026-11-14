@@ -345,7 +345,10 @@ function bindPlay() {
   $('swing').addEventListener('click', onSwing);
   $('skip').addEventListener('click', () => { G.skip = true; $('skip').classList.add('hidden'); if (G.anim) { const a = G.anim; G.anim = null; a.done(); } });
   window.addEventListener('resize', () => { if (!$('s-play').classList.contains('hidden')) { resizeCanvas(); aimCamera(); } });
+  // Inside an embedding iframe (itch.io), Space and the arrow keys would otherwise scroll the host page.
+  cv.addEventListener('pointerdown', () => { try { window.focus(); } catch (_) {} });
   window.addEventListener('keydown', e => {
+    if (!$('s-play').classList.contains('hidden') && (e.code === 'Space' || e.code.startsWith('Arrow')) && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target.tagName)) e.preventDefault();
     const T = G.turn; if (!T || $('s-play').classList.contains('hidden') || document.querySelector('#s-play .modal')) return;
     if (e.code === 'Space' || e.code === 'Enter') { if (e.target === $('swing')) return; e.preventDefault(); onSwing(); }
     else if (T.mode === 'aim' && e.code.startsWith('Arrow')) {

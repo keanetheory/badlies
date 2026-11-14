@@ -18,6 +18,24 @@ node test/sim.mjs     # headless rounds in every format on every course
 Open `dist/index.html` in a browser to play. The Course Forger's Claude-backed parts (screenshot survey, description layout) and cross-device saves only light up when the page is published as a Claude artifact
 with the `sample` (images), `db` and `user` capabilities; everywhere else the game falls back to a keyword parser and localStorage.
 
+## Publishing on itch.io
+
+1. Build: `node build.mjs`, or without Node: `powershell -ExecutionPolicy Bypass -File build.ps1`.
+   Either writes `dist/badlies-itch.zip` with `index.html` at its root.
+2. On itch.io, create a new project with **Kind of project: HTML** and upload the zip.
+   Tick **This file will be played in the browser**.
+3. Embed options:
+   - Viewport: **960 × 640** (the game resizes to fit any size, so another size is fine)
+   - **Mobile friendly** on, orientation **Default**; the layout works in portrait and landscape
+   - **Fullscreen button** on
+   - Leave **Automatically start on page load** off so the click-to-play button gives the frame keyboard focus
+   - SharedArrayBuffer support is not needed
+
+On itch the game runs in its offline mode: rivals, the map-data importer and the keyword hole parser all work.
+The screenshot survey in the Course Forger needs a Claude artifact host and stays unavailable.
+Saves go to localStorage, so they stay in the player's browser for itch.io and are not shared across devices.
+The page loads its two display fonts from Google Fonts and falls back to system fonts if that request is blocked.
+
 ## Layout
 
 | File | What it does |
