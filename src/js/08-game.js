@@ -307,6 +307,7 @@ async function playHole(run) {
   if (R.fmt === 'wolf') extra = R.wolf.idx === 0 ? 'You’re the Wolf this hole. Watch the tee shots, then choose.' : `${esc(R.players[R.wolf.idx].short)} is the Wolf this hole. Hit a good one and you might get picked.`;
   if (R.fmt === 'strokeplay' && R.hi === 0) extra = `Strokeplay with ${esc(R.players.slice(1).map(p => p.short).join(', ').replace(/, ([^,]*)$/, ' and $1'))}. Every shot counts, and the lowest total after ${R.total} holes wins.`;
   if (R.fmt === 'foursomes') extra = R.hi % 2 === 0 ? `You tee off. ${esc(R.players[1].short)} plays the next one.` : `${esc(R.players[1].short)} tees off. You get whatever is left.`;
+  if (R.stake && R.hi === 0) extra += `${extra ? '<br>' : ''}${money(R.stake * R.players.length)} in the pot (${money(R.stake)} each). ${R.teams ? 'The winning side splits it.' : 'Winner takes it.'}`;
   await modal(`<p class="kicker">Hole ${R.hi + 1} of ${R.total}</p><h3>${esc(h.name)}</h3><p><b>Par ${h.par}, ${h.yards} yards.</b> Wind ${R.wind.mph} mph.</p>${h.blurb ? `<p>${esc(h.blurb)}</p>` : ''}${extra ? `<p class="note">${extra}</p>` : ''}<button class="btn pink big" data-val="go">Tee it up</button>`);
   live();
   rivalsPlan();

@@ -1,10 +1,11 @@
 // Headless smoke test: plays full rounds in every format with the human on autopilot.
 import fs from 'node:fs'; import vm from 'node:vm';
-const files = ['01-util', '02-course', '04-engine', '05-agents', '06-round'];
+const files = ['01-util', '02-course', '02b-real-courses', '04-engine', '05-agents', '06-round'];
 const src = files.map(f => fs.readFileSync(new URL(`../src/js/${f}.js`, import.meta.url), 'utf8')).join('\n') +
-  '\n;globalThis.G={BUILTIN,getCourse,NPCS,GOLFERS,FORMATS,newRound,startHole,nextBall,hitterOf,needsWolfCall,setWolf,npcWolfChoice,npcShot,finishHole,standings,surfaceAt,MATCH_FORMATS,statusText};';
+  '\n;globalThis.G={BUILTIN,getCourse,NPCS,GOLFERS,FORMATS,newRound,startHole,nextBall,hitterOf,needsWolfCall,setWolf,npcWolfChoice,npcShot,finishHole,standings,surfaceAt,MATCH_FORMATS,statusText,potShare};';
 vm.runInThisContext(src);
 const G = globalThis.G; let fail = 0;
+const MATCH = f => G.MATCH_FORMATS.includes(f);
 const assert = (c, m) => { if (!c) { fail++; console.error('FAIL', m); } };
 const mkNpc = n => ({ ...n, skills: { ...n.skills } });
 for (const course of G.BUILTIN) {
@@ -41,6 +42,10 @@ for (const course of G.BUILTIN) {
         R.hi++;
       }
       const st = G.standings(R); if (st.won && !st.tied) wins++;
+      const share = G.potShare(R, 5), pot = 5 * R.players.length;
+      assert(share >= 0 && share <= pot, 'pot share in range');
+      assert((share > 0) === (MATCH(fmt) ? R.up >= 0 : true) || !MATCH(fmt), 'match pot follows the result');
+      assert(G.potShare(R, 0) === 0, 'no stake, no payout');
       if (fmt === 'strokeplay') assert(st.low && st.rows.every((r, j) => !j || st.rows[j - 1].score <= r.score), 'strokeplay sorts fewest strokes first');
     }
     console.log(`  ${fmt.padEnd(11)} autopilot human wins ${wins}/${N}`);

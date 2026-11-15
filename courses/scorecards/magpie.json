@@ -1,0 +1,66 @@
+{
+  "id": "magpie",
+  "name": "Magpie Golf Club",
+  "club": "magpie",
+  "theme": "lush",
+  "tee": "Yellow",
+  "sources": [
+    "Bromley Golf Club / Bromley Golf Centre, Magpie Hall Lane: yellow-tee card from golfingrecord.com, total 2,617 yd matching Golfshake's yellow nine",
+    "Character from Golfshake reviews: flat, short, wide forgiving fairways, small greens, heavy rough, one par 5"
+  ],
+  "defaults": {
+    "width": "wide",
+    "green": "small",
+    "bunkers": 2,
+    "fbunkers": 0,
+    "trees": 0.6,
+    "bend": 15
+  },
+  "holes": [
+    {
+      "par": 4,
+      "yards": 260,
+      "si": 17
+    },
+    {
+      "par": 4,
+      "yards": 272,
+      "si": 9
+    },
+    {
+      "par": 3,
+      "yards": 154,
+      "si": 11
+    },
+    {
+      "par": 4,
+      "yards": 323,
+      "si": 5
+    },
+    {
+      "par": 3,
+      "yards": 138,
+      "si": 7
+    },
+    {
+      "par": 5,
+      "yards": 465,
+      "si": 15
+    },
+    {
+      "par": 4,
+      "yards": 351,
+      "si": 1
+    },
+    {
+      "par": 4,
+      "yards": 365,
+      "si": 3
+    },
+    {
+      "par": 4,
+      "yards": 289,
+      "si": 13
+    }
+  ]
+}

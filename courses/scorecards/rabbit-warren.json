@@ -1,0 +1,65 @@
+{
+  "id": "rabbit-warren",
+  "name": "Rabbit Warren",
+  "club": "rabbit",
+  "theme": "lush",
+  "tee": "White",
+  "sources": [
+    "Eltham Warren Golf Club: white-tee card from GolfPass (9 holes, played twice for 18)",
+    "Character: James Braid parkland from 1890 on a compact site, so tight and tree-lined"
+  ],
+  "defaults": {
+    "width": "narrow",
+    "bunkers": 2,
+    "fbunkers": 1,
+    "trees": 1,
+    "bend": 25
+  },
+  "holes": [
+    {
+      "par": 3,
+      "yards": 133,
+      "si": 17
+    },
+    {
+      "par": 4,
+      "yards": 338,
+      "si": 13
+    },
+    {
+      "par": 4,
+      "yards": 352,
+      "si": 7
+    },
+    {
+      "par": 4,
+      "yards": 450,
+      "si": 1
+    },
+    {
+      "par": 4,
+      "yards": 298,
+      "si": 15
+    },
+    {
+      "par": 4,
+      "yards": 406,
+      "si": 3
+    },
+    {
+      "par": 3,
+      "yards": 244,
+      "si": 5
+    },
+    {
+      "par": 5,
+      "yards": 501,
+      "si": 9
+    },
+    {
+      "par": 3,
+      "yards": 193,
+      "si": 11
+    }
+  ]
+}

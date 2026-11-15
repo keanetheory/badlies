@@ -184,7 +184,8 @@ const BUILTIN = [
 const holeCache = {};
 function getCourse(id, customs) {
   const b = BUILTIN.find(c => c.id === id);
-  if (b) { if (!holeCache[id]) holeCache[id] = b.specs.map(makeHole); return { id, name: b.name, theme: b.theme, tag: b.tag, holes: holeCache[id] }; }
+  // Built-ins are either generated from specs or imported from map data (packed holes, see 02b-real-courses).
+  if (b) { if (!holeCache[id]) holeCache[id] = b.packed ? b.packed.map(unpackHole) : b.specs.map(makeHole); return { id, name: b.name, theme: b.theme, tag: b.tag, club: b.club, holes: holeCache[id] }; }
   const c = (customs || []).find(c => c.id === id);
   if (!c) return getCourse('sodden');
   if (!holeCache[id]) holeCache[id] = c.holes.map(unpackHole);

@@ -1,0 +1,109 @@
+{
+  "id": "scarlet-libbets",
+  "name": "Scarlet Libbets",
+  "club": "scarlet",
+  "theme": "lush",
+  "tee": "White",
+  "sources": [
+    "Redlibbets Golf Club: white-tee card from GolfPass (par 72, 6,194 yd)",
+    "Character: undulating parkland and oak woodland; a lake by the 18th (position unknown, not placed yet)"
+  ],
+  "defaults": {
+    "bunkers": 2,
+    "fbunkers": 1,
+    "trees": 1,
+    "bend": 35
+  },
+  "holes": [
+    {
+      "par": 4,
+      "yards": 368,
+      "si": 12
+    },
+    {
+      "par": 5,
+      "yards": 519,
+      "si": 6
+    },
+    {
+      "par": 4,
+      "yards": 438,
+      "si": 2
+    },
+    {
+      "par": 3,
+      "yards": 160,
+      "si": 16
+    },
+    {
+      "par": 5,
+      "yards": 472,
+      "si": 4
+    },
+    {
+      "par": 4,
+      "yards": 303,
+      "si": 14
+    },
+    {
+      "par": 4,
+      "yards": 396,
+      "si": 8
+    },
+    {
+      "par": 3,
+      "yards": 152,
+      "si": 18
+    },
+    {
+      "par": 4,
+      "yards": 359,
+      "si": 10
+    },
+    {
+      "par": 4,
+      "yards": 293,
+      "si": 9
+    },
+    {
+      "par": 4,
+      "yards": 415,
+      "si": 1
+    },
+    {
+      "par": 4,
+      "yards": 340,
+      "si": 11
+    },
+    {
+      "par": 4,
+      "yards": 292,
+      "si": 13
+    },
+    {
+      "par": 4,
+      "yards": 416,
+      "si": 3
+    },
+    {
+      "par": 3,
+      "yards": 141,
+      "si": 15
+    },
+    {
+      "par": 5,
+      "yards": 477,
+      "si": 7
+    },
+    {
+      "par": 3,
+      "yards": 162,
+      "si": 17
+    },
+    {
+      "par": 5,
+      "yards": 491,
+      "si": 5
+    }
+  ]
+}
