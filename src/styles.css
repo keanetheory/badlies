@@ -44,6 +44,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tagline { font-size: 1.15rem; font-weight: 600; max-width: 24ch; margin-bottom: 22px; }
 .title-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .title-actions .big { grid-column: 1 / -1; }
+.title-actions .big.half { grid-column: auto; padding-left: 12px; padding-right: 12px; }
 .title-actions .btn:last-child { grid-column: 1 / -1; }
 .title-foot { margin-top: 16px; font-size: .9rem; opacity: .85; min-height: 1.4em; }
 @media (prefers-reduced-motion: no-preference) { .wordmark { animation: plop .5s cubic-bezier(.2, 1.5, .4, 1) both; } }

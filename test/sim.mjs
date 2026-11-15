@@ -22,7 +22,7 @@ for (const course of G.BUILTIN) {
     let wins = 0, N = 12;
     for (let k = 0; k < N; k++) {
       const me = { id: 'me', name: 'You', short: 'You', human: true, skills: { drive: 4, approach: 4, chip: 4, sand: 4, putt: 4 }, aggr: .5, tilt: .3, savvy: .6 };
-      const others = G.NPCS.map(mkNpc).sort(() => Math.random() - .5), n = G.FORMATS[fmt].n;
+      const others = G.NPCS.map(mkNpc).sort(() => Math.random() - .5), n = fmt === 'strokeplay' ? 2 + k % 3 : G.FORMATS[fmt].n;
       const R = G.newRound({ format: fmt, holes: C.holes, total: 9, theme: C.theme, players: [me, ...others.slice(0, n - 1)], field: fmt === 'stableford' ? others.slice(n - 1) : [], seed: 1000 * k + fmt.length });
       while (!R.over) {
         G.startHole(R); let guard = 0;
@@ -37,9 +37,11 @@ for (const course of G.BUILTIN) {
         const out = G.finishHole(R);
         R.players.forEach((p, i) => { (per[p.id] = per[p.id] || []).push(out.strokes[i] - out.par); });
         if (fmt === 'nines') assert(out.delta.reduce((a, b) => a + b, 0) === 9, 'nines sums to 9');
+        if (fmt === 'strokeplay') { assert(out.strokes.length === n, 'strokeplay field size'); assert(typeof G.statusText(R) === 'string', 'strokeplay status'); }
         R.hi++;
       }
       const st = G.standings(R); if (st.won && !st.tied) wins++;
+      if (fmt === 'strokeplay') assert(st.low && st.rows.every((r, j) => !j || st.rows[j - 1].score <= r.score), 'strokeplay sorts fewest strokes first');
     }
     console.log(`  ${fmt.padEnd(11)} autopilot human wins ${wins}/${N}`);
   }

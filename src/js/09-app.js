@@ -33,6 +33,9 @@ const skillBars = (lv, xp) => `<div class="bars">${SKILLS.map(k => `<span>${SKIL
 // ---------- navigation ----------
 const nav = [];
 let U = { fmt: 'stableford', total: 6, course: 'sodden', rivals: [] };
+let Q = { course: null, n: 0, golfer: null };   // Quick Start picks
+const QUICK_HOLES = 6;
+let lastCfg = null;   // what "Go again" replays
 let F = { tab: 'words', holes: [], name: '', theme: 'lush', busy: false, msg: '', file: null, lat: '', sel: 0 };
 let lastRound = null;
 function show(screen) { for (const s of ['title', 'page', 'play']) $('s-' + s).classList.toggle('hidden', s !== screen); if (screen !== 'play') stopLoop(); }
@@ -47,7 +50,7 @@ function titleFoot() {
   $('title-foot').textContent = g ? `Playing as ${g.name}. ${save.stats.rounds} round${save.stats.rounds === 1 ? '' : 's'}, ${save.stats.wins} win${save.stats.wins === 1 ? '' : 's'}.` : 'No golfer yet. Pick one and start embarrassing yourself.';
 }
 const PAGES = {
-  golfer: ['Pick your golfer', pageGolfer], setup: ['Set up the round', pageSetup], locker: ['Locker room', pageLocker],
+  golfer: ['Pick your golfer', pageGolfer], setup: ['Set up the round', pageSetup], quick: ['Quick start', pageQuick], locker: ['Locker room', pageLocker],
   rivals: ['The rivals', pageRivals], forge: ['Course Forger', pageForge], result: ['The damage', pageResult],
 };
 function renderPage(keepScroll) {
@@ -64,9 +67,19 @@ function pageGolfer() {
     return `<button class="pick" data-act="golfer" data-id="${g.id}" aria-pressed="${save.golfer === g.id}"><span class="who">${badge(g.name, g.color)}<span><h3>${esc(g.name)}</h3><span class="note">${esc(g.tag)}</span></span></span>${skillBars(sk ? levels(sk) : g.skills)}</button>`;
   }).join('')}</div>`;
 }
+const allCourses = () => [...BUILTIN.map(c => ({ id: c.id, name: c.name, tag: c.tag })), ...courses.map(c => ({ id: c.id, name: c.name, tag: `${c.holes.length} hole${c.holes.length === 1 ? '' : 's'}, forged by you.` }))];
+function pageQuick() {
+  const g = GOLFERS.find(x => x.id === (save.golfer || Q.golfer)), ready = Q.course && Q.n;
+  return `<p class="lede">New to all this? Play strokeplay: count every shot, and the lowest total wins. Pick a course and some company and I’ll sort out the rest.</p>
+  <h3 class="sec">1. Pick a course</h3><div class="grid2">${allCourses().map(c => `<button class="pick" data-act="q-course" data-id="${esc(c.id)}" aria-pressed="${Q.course === c.id}"><h3>${esc(c.name)}</h3><span class="note">${esc(c.tag)}</span></button>`).join('')}</div>
+  <h3 class="sec">2. How many playing partners?</h3><div class="rowwrap">${[1, 2, 3].map(n => `<button class="chip" data-act="q-n" data-id="${n}" aria-pressed="${Q.n === n}" style="padding-left:14px">${n} partner${n === 1 ? '' : 's'}</button>`).join('')}</div>
+  <p class="note">I’ll pick them for you from whoever is loitering by the first tee.</p>
+  <div class="card rowwrap" style="justify-content:space-between"><span class="who">${badge(g.name, g.color)}<span><b>You’ll play as ${esc(g.name)}</b><br><span class="note">${QUICK_HOLES} holes of strokeplay.</span></span></span><button class="btn small" data-act="go" data-to="golfer">Change golfer</button></div>
+  <div class="sticky-cta"><button class="btn pink big" data-act="q-tee" ${ready ? '' : 'disabled'}>${!Q.course ? 'Pick a course first' : !Q.n ? 'Pick your partners' : 'Tee off'}</button></div>`;
+}
 function pageSetup() {
-  const f = FORMATS[U.fmt], need = f.n - 1, all = [...BUILTIN.map(c => ({ id: c.id, name: c.name, tag: c.tag })), ...courses.map(c => ({ id: c.id, name: c.name, tag: `${c.holes.length} hole${c.holes.length === 1 ? '' : 's'}, forged by you.` }))];
-  const who = U.fmt === 'stableford' ? 'Pick three to play alongside. The other five are out on the course too.' : f.teams ? 'Pick three. The first one is your partner, so choose with your head.' : `Pick ${need === 1 ? 'your opponent' : need + ' opponents'}.`;
+  const f = FORMATS[U.fmt], need = f.n - 1, all = allCourses();
+  const who = U.fmt === 'stableford' ? 'Pick three to play alongside. The other five are out on the course too.' : U.fmt === 'strokeplay' ? 'Pick up to three playing partners.' : f.teams ? 'Pick three. The first one is your partner, so choose with your head.' : `Pick ${need === 1 ? 'your opponent' : need + ' opponents'}.`;
   return `<h3 class="sec">The game</h3><div class="grid2">${Object.entries(FORMATS).map(([id, x]) => `<button class="pick" data-act="fmt" data-id="${id}" aria-pressed="${U.fmt === id}"><h3>${x.name}</h3><span class="note">${x.blurb}</span></button>`).join('')}</div>
   <h3 class="sec">How long have you got?</h3><div class="rowwrap">${[3, 6, 9].map(n => `<button class="chip" data-act="len" data-id="${n}" aria-pressed="${U.total === n}" style="padding-left:14px">${n} holes</button>`).join('')}</div>
   <h3 class="sec">The course</h3><div class="grid2">${all.map(c => `<button class="pick" data-act="course" data-id="${esc(c.id)}" aria-pressed="${U.course === c.id}"><h3>${esc(c.name)}</h3><span class="note">${esc(c.tag)}</span></button>`).join('')}</div>
@@ -91,8 +104,9 @@ function pageResult() {
   const L = lastRound; if (!L) return '';
   const { R, st, gains, ups } = L;
   const head = st.tied ? 'A tie. Deeply unsatisfying.' : st.won ? 'You won. Insufferable.' : pick(['You lost. Shocking nobody.', 'Beaten. Again.', 'Well, you turned up.']);
-  const line = st.match ? st.text + '.' : `You finished ${['', '1st', '2nd', '3rd'][st.rank] || st.rank + 'th'} of ${st.rows.length} with ${R.pts[0]} point${R.pts[0] === 1 ? '' : 's'}.`;
-  const table = st.match ? '' : `<table class="sc"><tr><th>Player</th><th>Points</th></tr>${st.rows.map(r => `<tr class="${r.human ? 'me' : ''}"><td>${esc(r.human ? 'You' : r.name)}</td><td>${r.score}</td></tr>`).join('')}</table>`;
+  const place = `You finished ${['', '1st', '2nd', '3rd'][st.rank] || st.rank + 'th'} of ${st.rows.length}`;
+  const line = st.match ? st.text + '.' : st.low ? `${place} on ${R.pts[0]} strokes, ${toParWords(R.pts[0] - st.par)}.` : `${place} with ${R.pts[0]} point${R.pts[0] === 1 ? '' : 's'}.`;
+  const table = st.match ? '' : `<table class="sc"><tr><th>Player</th><th>${st.low ? 'Strokes' : 'Points'}</th></tr>${st.rows.map(r => `<tr class="${r.human ? 'me' : ''}"><td>${esc(r.human ? 'You' : r.name)}</td><td>${r.score}${st.low ? ` (${toParText(r.score - st.par)})` : ''}</td></tr>`).join('')}</table>`;
   const xp = SKILLS.filter(k => gains[k]).map(k => `<li><b>${SKILL_NAME[k]}</b> +${gains[k]} XP${ups.includes(k) ? `, now level ${mySkills()[k].lvl}` : ''}</li>`).join('');
   return `<h3 class="verdict">${head}</h3><p class="lede"><b>${esc(line)}</b> ${esc(FORMATS[R.fmt].name)} over ${R.results.length} hole${R.results.length === 1 ? '' : 's'} at ${esc(R.courseName)}.</p>
   <div class="quote"><p id="quote">${esc(L.quote.line)}</p><p class="note" id="quote-by">${esc(L.quote.by)}</p></div>
@@ -102,14 +116,22 @@ function pageResult() {
 }
 
 // ---------- round start / end ----------
-function teeOff() {
+function teeOff() { startRound({ fmt: U.fmt, total: U.total, course: U.course, rivals: U.rivals.slice() }); }
+function quickTee() {
+  if (!Q.course || !Q.n) return;
+  if (!save.golfer) ACTS.golfer({ id: Q.golfer }, true);
+  startRound({ fmt: 'strokeplay', total: QUICK_HOLES, course: Q.course, rivals: [], size: Q.n + 1 });
+}
+// cfg: { fmt, total, course, rivals, size? }. size overrides the format's player count (strokeplay plays 2 to 4).
+function startRound(cfg) {
   if (!save.golfer) return go('golfer');
-  const f = FORMATS[U.fmt], g = golfer(), C = getCourse(U.course, courses);
-  let ids = U.rivals.slice(0, f.n - 1);
-  for (const n of shuffle(NPCS)) if (ids.length < f.n - 1 && !ids.includes(n.id)) ids.push(n.id);
+  lastCfg = cfg;
+  const f = FORMATS[cfg.fmt], n = cfg.size || f.n, g = golfer(), C = getCourse(cfg.course, courses);
+  let ids = cfg.rivals.slice(0, n - 1);
+  for (const x of shuffle(NPCS)) if (ids.length < n - 1 && !ids.includes(x.id)) ids.push(x.id);
   const mk = n => ({ ...n, skills: { ...n.skills }, _used: {} });
   const me = { id: 'me', name: g.name, short: 'You', human: true, color: '#ffffff', skills: levels(mySkills()) };
-  const R = newRound({ format: U.fmt, holes: C.holes, total: U.total, theme: C.theme, courseName: C.name, seed: Date.now() >>> 0, players: [me, ...ids.map(id => mk(NPCS.find(n => n.id === id)))], field: U.fmt === 'stableford' ? NPCS.filter(n => !ids.includes(n.id)).map(mk) : [] });
+  const R = newRound({ format: cfg.fmt, holes: C.holes, total: cfg.total, theme: C.theme, courseName: C.name, seed: Date.now() >>> 0, players: [me, ...ids.map(id => mk(NPCS.find(n => n.id === id)))], field: cfg.fmt === 'stableford' ? NPCS.filter(n => !ids.includes(n.id)).map(mk) : [] });
   G.hooks.seenHint = save.stats.holes > 0;
   show('play'); playRound(R);
 }
@@ -120,7 +142,7 @@ G.onEnd = (R, run) => {
   save.stats.rounds++; if (won) { save.stats.wins++; for (const k of SKILLS) { const b = mySkills()[k].lvl; addXp(mySkills(), k, 25); if (mySkills()[k].lvl > b) ups.push(k); } }
   R.players.forEach((p, i) => {
     if (p.human || (R.teams && i === 1)) return;
-    const r = save.h2h[p.id] = save.h2h[p.id] || { w: 0, l: 0 }, d = st.match ? R.up : R.pts[0] - R.pts[i];
+    const r = save.h2h[p.id] = save.h2h[p.id] || { w: 0, l: 0 }, d = st.match ? R.up : st.low ? R.pts[i] - R.pts[0] : R.pts[0] - R.pts[i];
     if (d > 0) r.w++; else if (d < 0) r.l++;
   });
   persist();
@@ -216,14 +238,18 @@ function forgeSave() {
 
 // ---------- events ----------
 const ACTS = {
+  quick() { Q = { course: null, n: 0, golfer: pick(GOLFERS).id }; nav.length = 0; go('quick'); },
+  'q-course'(d) { Q.course = d.id; renderPage(true); },
+  'q-n'(d) { Q.n = +d.id; renderPage(true); },
+  'q-tee': quickTee,
   play() { if (!save.golfer) { nav.length = 0; go('golfer'); G.afterGolfer = 'setup'; } else { nav.length = 0; go('setup'); } },
   go(d) { go(d.to); }, back, home,
-  golfer(d) { const g = GOLFERS.find(x => x.id === d.id); save.golfer = g.id; if (!save.golfers[g.id]) save.golfers[g.id] = freshSkills(g); persist(); if (G.afterGolfer) { const to = G.afterGolfer; G.afterGolfer = null; go(to, true); } else if (nav.length > 1) back(); else renderPage(true); },
+  golfer(d, quiet) { const g = GOLFERS.find(x => x.id === d.id); save.golfer = g.id; if (!save.golfers[g.id]) save.golfers[g.id] = freshSkills(g); persist(); if (quiet) return; if (G.afterGolfer) { const to = G.afterGolfer; G.afterGolfer = null; go(to, true); } else if (nav.length > 1) back(); else renderPage(true); },
   fmt(d) { U.fmt = d.id; U.rivals = U.rivals.slice(0, FORMATS[U.fmt].n - 1); renderPage(true); },
   len(d) { U.total = +d.id; renderPage(true); },
   course(d) { U.course = d.id; renderPage(true); },
   rival(d) { const i = U.rivals.indexOf(d.id), need = FORMATS[U.fmt].n - 1; if (i >= 0) U.rivals.splice(i, 1); else { U.rivals.push(d.id); if (U.rivals.length > need) U.rivals.shift(); } renderPage(true); },
-  tee: teeOff, again: teeOff,
+  tee: teeOff, again() { if (lastCfg) startRound(lastCfg); else teeOff(); },
   async quit() { if (await modal(`<h3>Walking off?</h3><p>Your experience is safe. Your reputation is not.</p><button class="btn" data-val="no">Keep playing</button><button class="btn pink" data-val="yes">Walk off</button>`) === 'yes') { quitRound(); persist(); home(); } },
   view() { G.overview = !G.overview; $('b-view').classList.toggle('on', G.overview); const h = G.R.h; if (G.turn) aimCamera(); else if (G.overview) frame([h.tee, h.pin, ...h.path], 30, 80); },
   card() { modal(`<h3>The card</h3><p class="note">${esc(FORMATS[G.R.fmt].name)} at ${esc(G.R.courseName)}. ${esc(statusText(G.R))}</p>${scorecardHtml(G.R)}<button class="btn pink" data-val="x">Back to it</button>`); },
