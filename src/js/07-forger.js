@@ -86,12 +86,14 @@ function importGeo(text) {
     const rng = mulberry32(1234 + k * 17);
     let greens = of('green').filter(f => f.kind === 'poly' && dist(f.c, end) < 45).sort((a, b) => dist(a.c, end) - dist(b.c, end)).slice(0, 1).map(f => f.xy.map(R));
     if (!greens.length) { const e = R(end); greens = [blob(e.x, e.y, 13, 12, rng, 22, .12)]; }
-    const len = cumLen(line).pop(), par = parseInt(tags.par) || (len < 250 ? 3 : len < 470 ? 4 : 5);
+    // Trust a mapped par only if it's a real one (3-5); otherwise work it out from the length.
+    const len = cumLen(line).pop(), tp = parseInt(tags.par), par = tp >= 3 && tp <= 5 ? tp : (len < 250 ? 3 : len < 470 ? 4 : 5);
     const h = { name: tags.name || `Hole ${tags.ref || k + 1}`, par, seed: 500 + k * 31, tee: R(tee), pin: centroid(greens[0]), path: line.map(R), greens, autoTrees: 0, yards: Math.round(len),
       fairways: of('fairway').filter(f => f.kind === 'poly' && near(f, 30)).map(f => f.xy.map(R)),
       bunkers: of('bunker').filter(f => f.kind === 'poly' && near(f, 55)).map(f => f.xy.map(R)),
       waters: of('water').filter(f => f.kind === 'poly' && near(f, 70)).map(f => f.xy.map(R)), trees: [] };
-    const teeBox = of('tee').filter(f => f.kind === 'poly' && dist(f.c, tee) < 25)[0]; if (teeBox) h.teeBox = teeBox.xy.map(R);
+    // Use a mapped tee box only if the hole line actually starts on it; otherwise finalizeHole draws one.
+    const teeBox = of('tee').filter(f => f.kind === 'poly' && dist(f.c, tee) < 25 && pointInPoly(tee, f.xy))[0]; if (teeBox) h.teeBox = teeBox.xy.map(R);
     if (!h.fairways.length && par > 3) { const p = catmullRom(h.path, 4), L = cumLen(p), T = L[L.length - 1]; h.fairways = [ribbon(p, L, Math.min(80, T * .25), T - 10, () => 17)]; }
     const woods = of('wood').filter(f => f.kind === 'poly' && near(f, 90)).map(f => f.xy.map(R));
     const singles = of('tree').map(f => R(f.xy[0])).filter(p => distToPolyline(p, h.path) < 80);

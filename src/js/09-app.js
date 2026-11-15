@@ -1,6 +1,6 @@
 // ---------- 09-app: saves, menus, the Course Forger screen, boot ----------
 const freshSkills = g => Object.fromEntries(SKILLS.map(k => [k, { lvl: g.skills[k], xp: 0 }]));
-let save = { v: 1, golfer: null, golfers: {}, stats: { rounds: 0, wins: 0, holes: 0 }, h2h: {}, ai: true, t: 0 };
+let save = { v: 1, golfer: null, golfers: {}, stats: { rounds: 0, wins: 0, holes: 0 }, h2h: {}, ai: true, t: 0, cash: 20, stake: 0, club: null, lastDaily: '' };
 let courses = [];
 const Store = {
   col: null, chains: {},
@@ -30,6 +30,46 @@ const initials = n => n.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).sl
 const badge = (name, color) => `<span class="badge" style="background:${color}">${esc(initials(name))}</span>`;
 const skillBars = (lv, xp) => `<div class="bars">${SKILLS.map(k => `<span>${SKILL_NAME[k]}</span><span class="bar"><i style="width:${lv[k] * 10}%"></i></span><b>${lv[k]}</b>${xp ? `<span class="note">next level</span><span class="bar xp"><i style="width:${xp[k].lvl >= MAX_LEVEL ? 100 : xp[k].xp / xpNeed(xp[k].lvl) * 100}%"></i></span><span class="note">${xp[k].lvl >= MAX_LEVEL ? 'max' : xp[k].xp + '/' + xpNeed(xp[k].lvl)}</span>` : ''}`).join('')}</div>`;
 
+// ---------- golf clubs and money ----------
+// Subs fall due every SUBS_EVERY rounds, counted from joining. Magpie and High Trees are free until your first win.
+const CLUBS = [
+  { id: 'magpie', name: 'Magpie Golf Club', fee: 0, freeUntilWin: true, color: '#3b3f4a', blurb: 'They’ll take anything shiny, including your ball if it stops near the car park.' },
+  { id: 'hightrees', name: 'High Trees', fee: 0, freeUntilWin: true, color: '#2f7d4a', blurb: 'Named for the canopy. Famous for the ricochets.' },
+  { id: 'rabbit', name: 'Rabbit Warren', fee: 50, color: '#a77b4f', blurb: 'The fairways are full of holes. Not the useful kind.' },
+  { id: 'scarlet', name: 'Scarlet Libbets', fee: 100, color: '#c8243b', blurb: 'Red jackets, red faces, red ink on the card.' },
+  { id: 'darker', name: 'Darkerthanusual Heath', fee: 250, color: '#3a2a4f', blurb: 'Gloomy, exclusive, and quietly furious about your shoes.' },
+];
+const FREE_CLUB_FEE = 25, SUBS_EVERY = 10, MAX_STAKE = 5, DAILY_BONUS = 5;
+// £5 for each calendar day (the player's local date) the game is opened. Safe to call repeatedly.
+let dailyNote = '';
+function dailyBonus() {
+  const d = new Date(), today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  if (save.lastDaily === today) return;
+  save.lastDaily = today; save.cash = round2(save.cash + DAILY_BONUS); persist();
+  dailyNote = `Daily allowance: ${money(DAILY_BONUS)} added. `;
+}
+const clubFee = c => c.freeUntilWin ? (save.stats.wins > 0 ? FREE_CLUB_FEE : 0) : c.fee;
+const myClub = () => save.club && CLUBS.find(c => c.id === save.club.id);
+const homeCourseOf = c => c && BUILTIN.find(b => b.club === c.id);
+const feeText = c => c.freeUntilWin ? (save.stats.wins > 0 ? `${money(FREE_CLUB_FEE)} every ${SUBS_EVERY} rounds. The free ride ended with your first win.` : `Free until you win your first match, then ${money(FREE_CLUB_FEE)} every ${SUBS_EVERY} rounds.`) : `${money(c.fee)} every ${SUBS_EVERY} rounds.`;
+function joinClub(id) {
+  const c = CLUBS.find(x => x.id === id), fee = clubFee(c);
+  if (!c || save.cash < fee || (save.club && save.club.id === id)) return;
+  save.cash = round2(save.cash - fee); save.club = { id, due: save.stats.rounds + SUBS_EVERY }; persist();
+}
+// Called after each round. Pays subs when due; if the wallet can't cover them, drops to the cheapest club it can, or out.
+function chargeSubs() {
+  const c = myClub(); if (!c || save.stats.rounds < save.club.due) return '';
+  const fee = clubFee(c);
+  if (save.cash >= fee) { save.cash = round2(save.cash - fee); save.club.due += SUBS_EVERY; return fee ? `${c.name} took ${money(fee)} in subs. Next due after round ${save.club.due}.` : `${c.name} renewed your membership for nothing. Enjoy it while it lasts.`; }
+  const alt = CLUBS.filter(x => x.id !== c.id && clubFee(x) <= save.cash).sort((a, b) => clubFee(a) - clubFee(b))[0];
+  if (alt) { const f = clubFee(alt); save.cash = round2(save.cash - f); save.club = { id: alt.id, due: save.stats.rounds + SUBS_EVERY }; return `You couldn’t cover the ${money(fee)} subs at ${c.name}, so you’re now a member of ${alt.name}${f ? ` (${money(f)})` : ''}.`; }
+  save.club = null; return `You couldn’t cover the ${money(fee)} subs at ${c.name}. Your membership has lapsed.`;
+}
+const stakeNow = () => Math.max(0, Math.min(save.stake || 0, Math.floor(save.cash)));
+const stakesHtml = () => `<h3 class="sec">The stakes</h3><p class="note">Put up to ${money(MAX_STAKE)} on it. Everyone in your group matches your stake and the winner takes the pot. You have ${money(save.cash)}.</p>
+  <div class="rowwrap">${[0, 1, 2, 3, 4, 5].map(n => `<button class="chip" data-act="stake" data-id="${n}" aria-pressed="${stakeNow() === n}" ${n > save.cash ? 'disabled' : ''} style="padding-left:14px">${n ? money(n) : 'No bet'}</button>`).join('')}</div>`;
+
 // ---------- navigation ----------
 const nav = [];
 let U = { fmt: 'stableford', total: 6, course: 'sodden', rivals: [] };
@@ -40,18 +80,19 @@ let F = { tab: 'words', holes: [], name: '', theme: 'lush', busy: false, msg: ''
 let lastRound = null;
 function show(screen) { for (const s of ['title', 'page', 'play']) $('s-' + s).classList.toggle('hidden', s !== screen); if (screen !== 'play') stopLoop(); }
 function go(page, replace) {
+  dailyNote = '';
   if (!replace) nav.push(page); else nav[nav.length - 1] = page;
   show('page'); renderPage(); $('s-page').scrollTop = 0;
 }
 function back() { nav.pop(); if (nav.length) { show('page'); renderPage(); } else home(); }
-function home() { nav.length = 0; show('title'); titleFoot(); }
+function home() { nav.length = 0; show('title'); dailyBonus(); titleFoot(); }
 function titleFoot() {
-  const g = golfer();
-  $('title-foot').textContent = g ? `Playing as ${g.name}. ${save.stats.rounds} round${save.stats.rounds === 1 ? '' : 's'}, ${save.stats.wins} win${save.stats.wins === 1 ? '' : 's'}.` : 'No golfer yet. Pick one and start embarrassing yourself.';
+  const g = golfer(), c = myClub();
+  $('title-foot').textContent = dailyNote + (g ? `Playing as ${g.name}${c ? ` of ${c.name}` : ''}. ${money(save.cash)} in the wallet. ${save.stats.rounds} round${save.stats.rounds === 1 ? '' : 's'}, ${save.stats.wins} win${save.stats.wins === 1 ? '' : 's'}.` : 'No golfer yet. Pick one and start embarrassing yourself.');
 }
 const PAGES = {
   golfer: ['Pick your golfer', pageGolfer], setup: ['Set up the round', pageSetup], quick: ['Quick start', pageQuick], locker: ['Locker room', pageLocker],
-  rivals: ['The rivals', pageRivals], forge: ['Course Forger', pageForge], result: ['The damage', pageResult],
+  rivals: ['The rivals', pageRivals], club: ['Golf club', pageClub], forge: ['Course Forger', pageForge], result: ['The damage', pageResult],
 };
 function renderPage(keepScroll) {
   const p = nav[nav.length - 1], st = $('s-page').scrollTop; if (!p) return;
@@ -67,13 +108,15 @@ function pageGolfer() {
     return `<button class="pick" data-act="golfer" data-id="${g.id}" aria-pressed="${save.golfer === g.id}"><span class="who">${badge(g.name, g.color)}<span><h3>${esc(g.name)}</h3><span class="note">${esc(g.tag)}</span></span></span>${skillBars(sk ? levels(sk) : g.skills)}</button>`;
   }).join('')}</div>`;
 }
-const allCourses = () => [...BUILTIN.map(c => ({ id: c.id, name: c.name, tag: c.tag })), ...courses.map(c => ({ id: c.id, name: c.name, tag: `${c.holes.length} hole${c.holes.length === 1 ? '' : 's'}, forged by you.` }))];
+const homeTag = c => { const m = myClub(); return m && c.club === m.id ? 'Your home course. ' : ''; };
+const allCourses = () => [...BUILTIN.map(c => ({ id: c.id, name: c.name, tag: homeTag(c) + c.tag })), ...courses.map(c => ({ id: c.id, name: c.name, tag: `${c.holes.length} hole${c.holes.length === 1 ? '' : 's'}, forged by you.` }))];
 function pageQuick() {
-  const g = GOLFERS.find(x => x.id === (save.golfer || Q.golfer)), ready = Q.course && Q.n;
+  const g = golfer() || GOLFERS.find(x => x.id === Q.golfer), ready = Q.course && Q.n;
   return `<p class="lede">New to all this? Play strokeplay: count every shot, and the lowest total wins. Pick a course and some company and I’ll sort out the rest.</p>
   <h3 class="sec">1. Pick a course</h3><div class="grid2">${allCourses().map(c => `<button class="pick" data-act="q-course" data-id="${esc(c.id)}" aria-pressed="${Q.course === c.id}"><h3>${esc(c.name)}</h3><span class="note">${esc(c.tag)}</span></button>`).join('')}</div>
   <h3 class="sec">2. How many playing partners?</h3><div class="rowwrap">${[1, 2, 3].map(n => `<button class="chip" data-act="q-n" data-id="${n}" aria-pressed="${Q.n === n}" style="padding-left:14px">${n} partner${n === 1 ? '' : 's'}</button>`).join('')}</div>
   <p class="note">I’ll pick them for you from whoever is loitering by the first tee.</p>
+  ${stakesHtml()}
   <div class="card rowwrap" style="justify-content:space-between"><span class="who">${badge(g.name, g.color)}<span><b>You’ll play as ${esc(g.name)}</b><br><span class="note">${QUICK_HOLES} holes of strokeplay.</span></span></span><button class="btn small" data-act="go" data-to="golfer">Change golfer</button></div>
   <div class="sticky-cta"><button class="btn pink big" data-act="q-tee" ${ready ? '' : 'disabled'}>${!Q.course ? 'Pick a course first' : !Q.n ? 'Pick your partners' : 'Tee off'}</button></div>`;
 }
@@ -85,6 +128,7 @@ function pageSetup() {
   <h3 class="sec">The course</h3><div class="grid2">${all.map(c => `<button class="pick" data-act="course" data-id="${esc(c.id)}" aria-pressed="${U.course === c.id}"><h3>${esc(c.name)}</h3><span class="note">${esc(c.tag)}</span></button>`).join('')}</div>
   <h3 class="sec">The company</h3><p class="note">${who} Leave it short and I’ll fill the gaps with whoever is loitering by the first tee.</p>
   <div class="rowwrap">${NPCS.map(n => { const i = U.rivals.indexOf(n.id); return `<button class="chip" data-act="rival" data-id="${n.id}" aria-pressed="${i >= 0}"><i class="dot" style="background:${n.color}"></i>${esc(n.short)}${i === 0 && f.teams ? ' (partner)' : ''}</button>`; }).join('')}</div>
+  ${stakesHtml()}
   <div class="sticky-cta"><button class="btn pink big" data-act="tee">Tee off</button></div>`;
 }
 function pageLocker() {
@@ -94,15 +138,27 @@ function pageLocker() {
   return `<div class="card"><div class="who">${badge(g.name, g.color)}<span><h3 style="font-size:1.6rem">${esc(g.name)}</h3><span class="note">${esc(g.tag)}</span></span></div>${skillBars(levels(sk), sk)}</div>
   <p class="note">Every shot you hit earns experience in its skill: tee shots for Driving, full shots for Approach, anything inside 55 yards for Chipping, bunker shots for Sand play, and putts for Putting. Better shots earn more. Higher levels hit it further and straighter, slow the swing meter and show more of the putting line.</p>
   <div class="card"><b>Career</b><p>${s.rounds} round${s.rounds === 1 ? '' : 's'} played, ${s.wins} won, ${s.holes} holes survived.</p></div>
-  <div class="rowwrap"><button class="btn" data-act="go" data-to="golfer">Change golfer</button><button class="btn pink" data-act="play">Play a round</button></div>`;
+  <div class="card"><b>Wallet and club</b><p>${money(save.cash)} in the wallet. ${myClub() ? `Member of ${esc(myClub().name)}, subs next due after round ${save.club.due}.` : 'Not a member of any club. Golf without somewhere to complain about it.'}</p></div>
+  <div class="rowwrap"><button class="btn" data-act="go" data-to="golfer">Change golfer</button><button class="btn" data-act="go" data-to="club">Golf club</button><button class="btn pink" data-act="play">Play a round</button></div>`;
 }
 function pageRivals() {
   return `<p class="lede">Eight regulars, eight separate agents. Each one picks their own shots, re-plans every hole from the state of the match, tilts in their own way, and has plenty to say about your golf.</p>
   <div class="grid2">${NPCS.map(n => { const r = save.h2h[n.id]; return `<div class="card"><div class="who">${badge(n.name, n.color)}<span><h3 style="font-size:1.3rem">${esc(n.name)}</h3><span class="note">${r && r.w + r.l ? (r.w > r.l ? `You lead ${r.w}–${r.l}` : r.w < r.l ? `They lead ${r.l}–${r.w}` : `Level at ${r.w}–${r.l}`) : 'You haven’t met yet'}</span></span></div><p style="margin-top:8px">${esc(n.bio)}</p>${skillBars(n.skills)}<p class="note" style="margin-top:8px">Risk appetite ${Math.round(n.aggr * 10)}/10. Tilts ${n.tilt > .6 ? 'badly' : n.tilt > .3 ? 'a bit' : 'almost never'}. Reads the wind ${n.savvy > .8 ? 'like a book' : n.savvy > .45 ? 'well enough' : 'like a horoscope'}.</p></div>`; }).join('')}</div>`;
 }
+function pageClub() {
+  const mine = myClub();
+  return `<p class="lede">Every golfer needs a club to complain about. Subs are due every ${SUBS_EVERY} rounds. Miss a payment and you drop to a club you can afford, or out on your ear.</p>
+  <div class="card"><b>${money(save.cash)} in the wallet.</b> ${mine ? `You’re a member of ${esc(mine.name)}. Next subs (${money(clubFee(mine))}) due after round ${save.club.due}; you’ve played ${save.stats.rounds}.` : 'You aren’t a member anywhere yet.'} Moving clubs means paying the new club’s subs straight away.</div>
+  <div class="grid2">${CLUBS.map(c => {
+    const fee = clubFee(c), home = homeCourseOf(c), here = mine && mine.id === c.id, short = round2(fee - save.cash);
+    return `<div class="card"${here ? ' style="outline:3px solid var(--yellow)"' : ''}><div class="who">${badge(c.name, c.color)}<span><h3 style="font-size:1.3rem">${esc(c.name)}</h3><span class="note">${esc(feeText(c))}</span></span></div>
+      <p style="margin-top:8px">${esc(c.blurb)}</p>${home ? `<p class="note">Home course: ${esc(home.name)}</p>` : ''}
+      <div class="rowwrap" style="margin-top:8px">${here ? '<b>Your club</b>' : `<button class="btn small ${fee ? '' : 'pink'}" data-act="join" data-id="${c.id}" ${short > 0 ? 'disabled' : ''}>${fee ? `Join for ${money(fee)}` : 'Join for free'}</button>${short > 0 ? `<span class="note">You need ${money(short)} more.</span>` : ''}`}</div></div>`;
+  }).join('')}</div>`;
+}
 function pageResult() {
   const L = lastRound; if (!L) return '';
-  const { R, st, gains, ups } = L;
+  const { R, st, gains, ups, cash } = L;
   const head = st.tied ? 'A tie. Deeply unsatisfying.' : st.won ? 'You won. Insufferable.' : pick(['You lost. Shocking nobody.', 'Beaten. Again.', 'Well, you turned up.']);
   const place = `You finished ${['', '1st', '2nd', '3rd'][st.rank] || st.rank + 'th'} of ${st.rows.length}`;
   const line = st.match ? st.text + '.' : st.low ? `${place} on ${R.pts[0]} strokes, ${toParWords(R.pts[0] - st.par)}.` : `${place} with ${R.pts[0]} point${R.pts[0] === 1 ? '' : 's'}.`;
@@ -111,18 +167,20 @@ function pageResult() {
   return `<h3 class="verdict">${head}</h3><p class="lede"><b>${esc(line)}</b> ${esc(FORMATS[R.fmt].name)} over ${R.results.length} hole${R.results.length === 1 ? '' : 's'} at ${esc(R.courseName)}.</p>
   <div class="quote"><p id="quote">${esc(L.quote.line)}</p><p class="note" id="quote-by">${esc(L.quote.by)}</p></div>
   ${table}<h3 class="sec">The card</h3>${scorecardHtml(R)}
+  <h3 class="sec">The money</h3><p>${cash.stake ? (cash.share > 0 ? `You took ${money(cash.share)} from the ${money(cash.pot)} pot.` : `The ${money(cash.pot)} pot went elsewhere, and so did your ${money(cash.stake)}.`) : 'No money on this one.'} You have ${money(save.cash)}.</p>${cash.subs ? `<p class="note">${esc(cash.subs)}</p>` : ''}
   <h3 class="sec">What you learned</h3><ul style="margin:0;padding-left:20px">${xp || '<li>Nothing. Somehow.</li>'}${st.won && !st.tied ? '<li>Winner’s bonus: +25 XP in everything.</li>' : ''}</ul>
   <div class="rowwrap"><button class="btn pink big" data-act="again">Go again</button><button class="btn" data-act="home">Clubhouse</button></div>`;
 }
 
 // ---------- round start / end ----------
-function teeOff() { startRound({ fmt: U.fmt, total: U.total, course: U.course, rivals: U.rivals.slice() }); }
+function teeOff() { startRound({ fmt: U.fmt, total: U.total, course: U.course, rivals: U.rivals.slice(), stake: stakeNow() }); }
 function quickTee() {
   if (!Q.course || !Q.n) return;
-  if (!save.golfer) ACTS.golfer({ id: Q.golfer }, true);
-  startRound({ fmt: 'strokeplay', total: QUICK_HOLES, course: Q.course, rivals: [], size: Q.n + 1 });
+  if (!golfer()) ACTS.golfer({ id: Q.golfer }, true);
+  startRound({ fmt: 'strokeplay', total: QUICK_HOLES, course: Q.course, rivals: [], size: Q.n + 1, stake: stakeNow() });
 }
-// cfg: { fmt, total, course, rivals, size? }. size overrides the format's player count (strokeplay plays 2 to 4).
+// cfg: { fmt, total, course, rivals, size?, stake? }. size overrides the format's player count (strokeplay plays 2 to 4).
+// The stake leaves the wallet at the first tee; walking off forfeits it.
 function startRound(cfg) {
   if (!save.golfer) return go('golfer');
   lastCfg = cfg;
@@ -132,6 +190,8 @@ function startRound(cfg) {
   const mk = n => ({ ...n, skills: { ...n.skills }, _used: {} });
   const me = { id: 'me', name: g.name, short: 'You', human: true, color: '#ffffff', skills: levels(mySkills()) };
   const R = newRound({ format: cfg.fmt, holes: C.holes, total: cfg.total, theme: C.theme, courseName: C.name, seed: Date.now() >>> 0, players: [me, ...ids.map(id => mk(NPCS.find(n => n.id === id)))], field: cfg.fmt === 'stableford' ? NPCS.filter(n => !ids.includes(n.id)).map(mk) : [] });
+  R.stake = Math.max(0, Math.min(cfg.stake || 0, MAX_STAKE, Math.floor(save.cash)));
+  if (R.stake) { save.cash = round2(save.cash - R.stake); persist(); }
   G.hooks.seenHint = save.stats.holes > 0;
   show('play'); playRound(R);
 }
@@ -145,9 +205,11 @@ G.onEnd = (R, run) => {
     const r = save.h2h[p.id] = save.h2h[p.id] || { w: 0, l: 0 }, d = st.match ? R.up : st.low ? R.pts[i] - R.pts[0] : R.pts[0] - R.pts[i];
     if (d > 0) r.w++; else if (d < 0) r.l++;
   });
+  const share = potShare(R, R.stake); save.cash = round2(save.cash + share);
+  const cash = { stake: R.stake, pot: R.stake * R.players.length, share, subs: chargeSubs() };
   persist();
   const rival = R.players[R.teams ? 2 : 1], q = { line: cannedLine(rival, won ? 'lose' : st.tied ? 'sulk' : 'win'), by: rival.name };
-  lastRound = { R, st, gains, ups, quote: q };
+  lastRound = { R, st, gains, ups, quote: q, cash };
   nav.length = 0; go('result');
 };
 
@@ -242,6 +304,8 @@ const ACTS = {
   'q-course'(d) { Q.course = d.id; renderPage(true); },
   'q-n'(d) { Q.n = +d.id; renderPage(true); },
   'q-tee': quickTee,
+  stake(d) { save.stake = +d.id; saveLocal(); renderPage(true); },
+  join(d) { joinClub(d.id); renderPage(true); },
   play() { if (!save.golfer) { nav.length = 0; go('golfer'); G.afterGolfer = 'setup'; } else { nav.length = 0; go('setup'); } },
   go(d) { go(d.to); }, back, home,
   golfer(d, quiet) { const g = GOLFERS.find(x => x.id === d.id); save.golfer = g.id; if (!save.golfers[g.id]) save.golfers[g.id] = freshSkills(g); persist(); if (quiet) return; if (G.afterGolfer) { const to = G.afterGolfer; G.afterGolfer = null; go(to, true); } else if (nav.length > 1) back(); else renderPage(true); },
@@ -249,8 +313,8 @@ const ACTS = {
   len(d) { U.total = +d.id; renderPage(true); },
   course(d) { U.course = d.id; renderPage(true); },
   rival(d) { const i = U.rivals.indexOf(d.id), need = FORMATS[U.fmt].n - 1; if (i >= 0) U.rivals.splice(i, 1); else { U.rivals.push(d.id); if (U.rivals.length > need) U.rivals.shift(); } renderPage(true); },
-  tee: teeOff, again() { if (lastCfg) startRound(lastCfg); else teeOff(); },
-  async quit() { if (await modal(`<h3>Walking off?</h3><p>Your experience is safe. Your reputation is not.</p><button class="btn" data-val="no">Keep playing</button><button class="btn pink" data-val="yes">Walk off</button>`) === 'yes') { quitRound(); persist(); home(); } },
+  tee: teeOff, again() { if (lastCfg) startRound({ ...lastCfg, stake: stakeNow() }); else teeOff(); },
+  async quit() { if (await modal(`<h3>Walking off?</h3><p>Your experience is safe. Your reputation is not.${G.R && G.R.stake ? ` Your ${money(G.R.stake)} stake stays in the pot.` : ''}</p><button class="btn" data-val="no">Keep playing</button><button class="btn pink" data-val="yes">Walk off</button>`) === 'yes') { quitRound(); persist(); home(); } },
   view() { G.overview = !G.overview; $('b-view').classList.toggle('on', G.overview); const h = G.R.h; if (G.turn) aimCamera(); else if (G.overview) frame([h.tee, h.pin, ...h.path], 30, 80); },
   card() { modal(`<h3>The card</h3><p class="note">${esc(FORMATS[G.R.fmt].name)} at ${esc(G.R.courseName)}. ${esc(statusText(G.R))}</p>${scorecardHtml(G.R)}<button class="btn pink" data-val="x">Back to it</button>`); },
   'f-tab'(d) { forgeRead(); F.tab = d.id; F.msg = ''; renderPage(true); },
@@ -266,7 +330,7 @@ const ACTS = {
   'f-rm'(d) { courses = courses.filter(c => c.id !== d.id); delete holeCache[d.id]; saveCourses(); Store.del('course_' + d.id); if (U.course === d.id) U.course = 'sodden'; renderPage(true); },
 };
 function boot() {
-  loadLocal(); bindPlay(); titleFoot();
+  loadLocal(); dailyBonus(); bindPlay(); titleFoot();
   document.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b && ACTS[b.dataset.act] && !b.disabled) ACTS[b.dataset.act](b.dataset); });
   document.addEventListener('change', e => { if (e.target.id === 'f-lat') { forgeRead(); renderPage(true); } });
   $('file-img').addEventListener('change', e => { F.file = e.target.files[0] || null; F.msg = ''; e.target.value = ''; renderPage(true); });
@@ -276,7 +340,7 @@ function boot() {
   AI.init();
   Store.init().then(() => Store.pull()).then(remote => {
     if (!remote) return;
-    if (remote.career && remote.career.v === 1 && (remote.career.t || 0) > (save.t || 0) && $('s-play').classList.contains('hidden')) { save = Object.assign(save, remote.career); saveLocal(); }
+    if (remote.career && remote.career.v === 1 && (remote.career.t || 0) > (save.t || 0) && $('s-play').classList.contains('hidden')) { save = Object.assign(save, remote.career); saveLocal(); dailyBonus(); }
     for (const c of remote.courses) if (c && c.id && Array.isArray(c.holes) && !courses.some(x => x.id === c.id)) courses.push(c);
     saveCourses(); titleFoot(); if (nav.length && !$('s-page').classList.contains('hidden')) { forgeRead(); renderPage(true); }
   });

@@ -12,6 +12,17 @@ const MATCH_FORMATS = ['matchplay', 'foursomes', 'pairs'];
 const TAPIN = .6;
 const parSoFar = R => R.results.reduce((a, r) => a + r.par, 0);
 const toParText = d => d === 0 ? 'E' : d > 0 ? '+' + d : String(d);
+const round2 = v => Math.round(v * 100) / 100;
+const money = v => '£' + (Number.isInteger(round2(v)) ? round2(v) : round2(v).toFixed(2));
+// Wager pot: everyone in the group stakes the same and the winner takes the lot.
+// Ties split it, and in Foursomes and Pairs the winning side splits it. Returns the human's share.
+function potShare(R, stake) {
+  if (!stake) return 0;
+  const pot = stake * R.players.length;
+  if (MATCH_FORMATS.includes(R.fmt)) return R.up > 0 ? pot / (R.teams ? 2 : 1) : R.up === 0 ? stake : 0;
+  const best = FORMATS[R.fmt].low ? Math.min(...R.pts) : Math.max(...R.pts), win = R.pts.filter(v => v === best).length;
+  return R.pts[0] === best ? round2(pot / win) : 0;
+}
 const toParWords = d => d === 0 ? 'level par' : d > 0 ? `${d} over par` : `${-d} under par`;
 
 function newRound(cfg) {

@@ -7,7 +7,9 @@ $root = $PSScriptRoot
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 function Read-Text($p) { [IO.File]::ReadAllText((Join-Path $root $p), $utf8) }
 
-$names = Get-ChildItem (Join-Path $root 'src/js') -Filter *.js | ForEach-Object { $_.Name } | Sort-Object -CaseSensitive
+# Ordinal sort, same as build.mjs (Sort-Object ignores hyphens, which put 02b-* before 02-*).
+[string[]]$names = Get-ChildItem (Join-Path $root 'src/js') -Filter *.js | ForEach-Object { $_.Name }
+[Array]::Sort($names, [StringComparer]::Ordinal)
 $js = ($names | ForEach-Object { Read-Text "src/js/$_" }) -join "`n"
 $html = Read-Text 'src/index.html'
 $i = $html.IndexOf('/*CSS*/'); $html = $html.Substring(0, $i) + (Read-Text 'src/styles.css') + $html.Substring($i + 7)
