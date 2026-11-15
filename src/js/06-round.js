@@ -1,5 +1,6 @@
 // ---------- 06-round: formats, turn order, scoring. No DOM in here. ----------
 const FORMATS = {
+  strokeplay: { name: 'Strokeplay', n: 4, low: true, blurb: 'Count every shot. Lowest total wins. Golf at its simplest, and its most honest.', rules: 'Strokeplay: every shot counts. Lowest total over the round wins.' },
   stableford: { name: 'Stableford', n: 4, blurb: 'Points for not being terrible. Par is 2, birdie 3, and a double bogey gets you nothing but sympathy. You against all eight rivals.', rules: 'Stableford points: bogey 1, par 2, birdie 3, eagle 4. Most points wins.' },
   matchplay: { name: 'Matchplay', n: 2, blurb: 'One on one. Win holes, not friends.', rules: 'Head-to-head matchplay: lowest score wins each hole.' },
   wolf: { name: 'Wolf', n: 4, blurb: 'Each hole someone is the Wolf. After the tee shots the Wolf picks a partner, or goes it alone like a hero. Or an idiot.', rules: 'Wolf: the Wolf picks a partner after tee shots (2 points each if they win, 3 each to the other pair if they lose) or goes alone (4 points for a win, 1 each to the other three for a loss).' },
@@ -9,6 +10,9 @@ const FORMATS = {
 };
 const MATCH_FORMATS = ['matchplay', 'foursomes', 'pairs'];
 const TAPIN = .6;
+const parSoFar = R => R.results.reduce((a, r) => a + r.par, 0);
+const toParText = d => d === 0 ? 'E' : d > 0 ? '+' + d : String(d);
+const toParWords = d => d === 0 ? 'level par' : d > 0 ? `${d} over par` : `${-d} under par`;
 
 function newRound(cfg) {
   const R = { fmt: cfg.format, holes: cfg.holes, total: cfg.total, theme: cfg.theme, courseName: cfg.courseName, players: cfg.players, field: cfg.field || [], hi: 0, up: 0, over: false, rng: mulberry32(cfg.seed || 1), results: [] };
@@ -74,7 +78,10 @@ function finishHole(R) {
   s.forEach((v, i) => R.strokes[i].push(v));
   const out = { hole: R.hi + 1, par, strokes: s, delta: P.map(() => 0), headline: '', sub: '' };
   const names = idx => idx.map(i => i === 0 ? 'you' : P[i].short).join(' & ');
-  if (R.fmt === 'stableford') {
+  if (R.fmt === 'strokeplay') {
+    s.forEach((v, i) => { out.delta[i] = v; R.pts[i] += v; });
+    out.headline = `${SCORE_NAME(s[0] - par)}. You’re ${toParWords(R.pts[0] - parSoFar(R) - par)} for the round.`;
+  } else if (R.fmt === 'stableford') {
     s.forEach((v, i) => { out.delta[i] = stablefordPts(par, v); R.pts[i] += out.delta[i]; });
     R.field.forEach((p, i) => { const v = soloHole(R, p); R.fieldPts[i] += stablefordPts(par, v); moodAfterHole(p, v - par); });
     out.headline = `${SCORE_NAME(s[0] - par)}. ${out.delta[0]} point${out.delta[0] === 1 ? '' : 's'}.`;
@@ -105,9 +112,10 @@ function finishHole(R) {
 function statusText(R) {
   if (MATCH_FORMATS.includes(R.fmt)) return matchText(R.up, R.total - R.hi);
   if (R.fmt === 'stableford') return `${R.pts[0]} pts`;
+  if (R.fmt === 'strokeplay') { const par = parSoFar(R); return R.players.map((p, i) => `${i === 0 ? 'You' : p.short} ${toParText(R.pts[i] - par)}`).join('  '); }
   return R.players.map((p, i) => `${i === 0 ? 'You' : p.short} ${R.pts[i]}`).join('  ');
 }
-// Final table: [{name, score, human, npc}] best first, plus a verdict for the human.
+// Final table: [{name, score, human, npc}] best first (fewest strokes first in strokeplay), plus a verdict for the human.
 function standings(R) {
   let rows;
   if (MATCH_FORMATS.includes(R.fmt)) {
@@ -116,7 +124,8 @@ function standings(R) {
   }
   rows = R.players.map((p, i) => ({ name: p.name, score: R.pts[i], human: i === 0, id: p.id }));
   R.field.forEach((p, i) => rows.push({ name: p.name, score: R.fieldPts[i], human: false, id: p.id }));
-  rows.sort((a, b) => b.score - a.score);
-  const mine = rows.find(r => r.human).score, rank = rows.filter(r => r.score > mine).length + 1;
-  return { match: false, rows, rank, won: rank === 1, tied: rank === 1 && rows.filter(r => r.score === mine).length > 1 };
+  const low = !!FORMATS[R.fmt].low;
+  rows.sort((a, b) => low ? a.score - b.score : b.score - a.score);
+  const mine = rows.find(r => r.human).score, rank = rows.filter(r => low ? r.score < mine : r.score > mine).length + 1;
+  return { match: false, low, par: parSoFar(R), rows, rank, won: rank === 1, tied: rank === 1 && rows.filter(r => r.score === mine).length > 1 };
 }

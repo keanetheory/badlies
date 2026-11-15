@@ -287,7 +287,8 @@ function rivalsPlan() {
   const R = G.R, left = R.total - R.hi, points = !MATCH_FORMATS.includes(R.fmt), npcs = [];
   R.players.forEach((p, i) => {
     if (p.human) return; npcs.push(p);
-    const lead = points ? R.pts[i] - Math.max(...R.pts.filter((v, j) => j !== i)) : (R.teams && i === 1 ? R.up : -R.up);
+    const others = R.pts.filter((v, j) => j !== i);
+    const lead = R.fmt === 'strokeplay' ? Math.min(...others) - R.pts[i] : points ? R.pts[i] - Math.max(...others) : (R.teams && i === 1 ? R.up : -R.up);
     planHole(p, lead, left, points);
   });
   const talkers = shuffle(npcs).slice(0, R.hi === 0 ? 2 : Math.random() < .65 ? 1 : 0);
@@ -304,6 +305,7 @@ async function playHole(run) {
   $('shotinfo').innerHTML = ''; $('swing').classList.add('hidden'); $('meter').classList.add('hidden'); $('skip').classList.add('hidden');
   let extra = '';
   if (R.fmt === 'wolf') extra = R.wolf.idx === 0 ? 'You’re the Wolf this hole. Watch the tee shots, then choose.' : `${esc(R.players[R.wolf.idx].short)} is the Wolf this hole. Hit a good one and you might get picked.`;
+  if (R.fmt === 'strokeplay' && R.hi === 0) extra = `Strokeplay with ${esc(R.players.slice(1).map(p => p.short).join(', ').replace(/, ([^,]*)$/, ' and $1'))}. Every shot counts, and the lowest total after ${R.total} holes wins.`;
   if (R.fmt === 'foursomes') extra = R.hi % 2 === 0 ? `You tee off. ${esc(R.players[1].short)} plays the next one.` : `${esc(R.players[1].short)} tees off. You get whatever is left.`;
   await modal(`<p class="kicker">Hole ${R.hi + 1} of ${R.total}</p><h3>${esc(h.name)}</h3><p><b>Par ${h.par}, ${h.yards} yards.</b> Wind ${R.wind.mph} mph.</p>${h.blurb ? `<p>${esc(h.blurb)}</p>` : ''}${extra ? `<p class="note">${extra}</p>` : ''}<button class="btn pink big" data-val="go">Tee it up</button>`);
   live();
@@ -318,9 +320,9 @@ async function playHole(run) {
   const out = finishHole(R);
   if (G.hooks.holeDone) G.hooks.holeDone(out);
   updateHud(); G.skip = false; $('skip').classList.add('hidden'); $('shotinfo').innerHTML = '';
-  const pointsy = !MATCH_FORMATS.includes(R.fmt);
-  const rows = R.players.map((p, i) => `<tr class="${i === 0 ? 'me' : ''}"><td>${i === 0 ? 'You' : esc(p.short)}</td><td>${out.strokes[i]}</td><td>${SCORE_NAME(out.strokes[i] - out.par)}</td>${pointsy ? `<td>${out.delta[i] ? '+' + out.delta[i] : '0'}</td>` : ''}</tr>`).join('');
-  await modal(`<p class="kicker">${esc(h.name)}, par ${h.par}</p><h3>${esc(out.headline)}</h3>${out.sub ? `<p><b>${esc(out.sub)}</b></p>` : ''}<p>${SCORE_SASS(out.strokes[0] - out.par)}</p><table class="sc"><tr><th></th><th>Shots</th><th></th>${pointsy ? '<th>Pts</th>' : ''}</tr>${rows}</table><button class="btn pink big" data-val="go">${R.over ? 'See the damage' : 'Next hole'}</button>`);
+  const stroke = R.fmt === 'strokeplay', pointsy = !MATCH_FORMATS.includes(R.fmt) && !stroke, par = parSoFar(R);
+  const rows = R.players.map((p, i) => `<tr class="${i === 0 ? 'me' : ''}"><td>${i === 0 ? 'You' : esc(p.short)}</td><td>${out.strokes[i]}</td><td>${SCORE_NAME(out.strokes[i] - out.par)}</td>${pointsy ? `<td>${out.delta[i] ? '+' + out.delta[i] : '0'}</td>` : stroke ? `<td>${toParText(R.pts[i] - par)}</td>` : ''}</tr>`).join('');
+  await modal(`<p class="kicker">${esc(h.name)}, par ${h.par}</p><h3>${esc(out.headline)}</h3>${out.sub ? `<p><b>${esc(out.sub)}</b></p>` : ''}<p>${SCORE_SASS(out.strokes[0] - out.par)}</p><table class="sc"><tr><th></th><th>Shots</th><th></th>${pointsy ? '<th>Pts</th>' : stroke ? '<th>Total</th>' : ''}</tr>${rows}</table><button class="btn pink big" data-val="go">${R.over ? 'See the damage' : 'Next hole'}</button>`);
   live(); R.hi++;
 }
 async function playRound(R) {
@@ -331,8 +333,9 @@ async function playRound(R) {
 }
 function scorecardHtml(R) {
   const n = R.results.length, head = R.results.map(r => `<th>${r.hole}</th>`).join(''), pars = R.results.map(r => `<td>${r.par}</td>`).join('');
-  const rows = R.players.map((p, i) => `<tr class="${i === 0 ? 'me' : ''}"><td>${i === 0 ? 'You' : esc(p.short)}</td>${R.strokes[i].map((s, k) => `<td class="${s < R.results[k].par ? 'u' : s > R.results[k].par ? 'o' : ''}">${s}</td>`).join('')}<td><b>${R.strokes[i].reduce((a, b) => a + b, 0) || ''}</b></td>${MATCH_FORMATS.includes(R.fmt) ? '' : `<td><b>${R.pts[i]}</b></td>`}</tr>`).join('');
-  return n ? `<div class="scwrap"><table class="sc"><tr><th>Hole</th>${head}<th>Tot</th>${MATCH_FORMATS.includes(R.fmt) ? '' : '<th>Pts</th>'}</tr><tr class="o"><td>Par</td>${pars}<td>${R.results.reduce((a, r) => a + r.par, 0)}</td>${MATCH_FORMATS.includes(R.fmt) ? '' : '<td></td>'}</tr>${rows}</table></div>` : '<p class="note">Nothing on the card yet. Go and hit something.</p>';
+  const stroke = R.fmt === 'strokeplay', extra = stroke ? '±' : MATCH_FORMATS.includes(R.fmt) ? '' : 'Pts', par = parSoFar(R);
+  const rows = R.players.map((p, i) => `<tr class="${i === 0 ? 'me' : ''}"><td>${i === 0 ? 'You' : esc(p.short)}</td>${R.strokes[i].map((s, k) => `<td class="${s < R.results[k].par ? 'u' : s > R.results[k].par ? 'o' : ''}">${s}</td>`).join('')}<td><b>${R.strokes[i].reduce((a, b) => a + b, 0) || ''}</b></td>${extra ? `<td><b>${stroke ? toParText(R.strokes[i].reduce((a, b) => a + b, 0) - par) : R.pts[i]}</b></td>` : ''}</tr>`).join('');
+  return n ? `<div class="scwrap"><table class="sc"><tr><th>Hole</th>${head}<th>Tot</th>${extra ? `<th>${extra}</th>` : ''}</tr><tr class="o"><td>Par</td>${pars}<td>${par}</td>${extra ? '<td></td>' : ''}</tr>${rows}</table></div>` : '<p class="note">Nothing on the card yet. Go and hit something.</p>';
 }
 function quitRound() { G.run++; G.turn = null; G.anim = null; stopLoop(); document.querySelectorAll('#s-play .modal').forEach(m => m.remove()); }
 
