@@ -1,0 +1,357 @@
+{
+  "id": "high-trees",
+  "name": "High Trees",
+  "club": "hightrees",
+  "theme": "lush",
+  "tee": "existing game",
+  "sources": [
+    "Map data © OpenStreetMap contributors, ODbL",
+    "Pars and yardages retained from the existing imported course.",
+    "User-supplied course overview, 2026-11-17. Tee-to-green route points use image pixels; widths and hazards are illustrative, not a surveyed recreation."
+  ],
+  "defaults": {
+    "width": "normal",
+    "bunkers": 2,
+    "fbunkers": 1,
+    "trees": 1
+  },
+  "holes": [
+    {
+      "par": 4,
+      "yards": 371,
+      "route": [
+        [
+          302,
+          230
+        ],
+        [
+          321,
+          268
+        ],
+        [
+          345,
+          307
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 291,
+      "route": [
+        [
+          365,
+          334
+        ],
+        [
+          333,
+          328
+        ],
+        [
+          304,
+          310
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 229,
+      "route": [
+        [
+          281,
+          303
+        ],
+        [
+          288,
+          328
+        ],
+        [
+          307,
+          354
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 425,
+      "route": [
+        [
+          263,
+          338
+        ],
+        [
+          225,
+          315
+        ],
+        [
+          183,
+          294
+        ],
+        [
+          169,
+          276
+        ]
+      ]
+    },
+    {
+      "par": 3,
+      "yards": 107,
+      "route": [
+        [
+          163,
+          267
+        ],
+        [
+          190,
+          256
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 435,
+      "route": [
+        [
+          173,
+          236
+        ],
+        [
+          137,
+          237
+        ],
+        [
+          104,
+          220
+        ],
+        [
+          78,
+          204
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 345,
+      "route": [
+        [
+          51,
+          198
+        ],
+        [
+          39,
+          170
+        ],
+        [
+          24,
+          119
+        ]
+      ]
+    },
+    {
+      "par": 3,
+      "yards": 186,
+      "route": [
+        [
+          52,
+          112
+        ],
+        [
+          65,
+          151
+        ]
+      ]
+    },
+    {
+      "par": 5,
+      "yards": 524,
+      "route": [
+        [
+          80,
+          161
+        ],
+        [
+          129,
+          185
+        ],
+        [
+          177,
+          209
+        ],
+        [
+          211,
+          214
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 358,
+      "route": [
+        [
+          211,
+          195
+        ],
+        [
+          172,
+          171
+        ],
+        [
+          129,
+          127
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 260,
+      "route": [
+        [
+          111,
+          144
+        ],
+        [
+          83,
+          120
+        ],
+        [
+          52,
+          89
+        ]
+      ]
+    },
+    {
+      "par": 5,
+      "yards": 452,
+      "route": [
+        [
+          84,
+          84
+        ],
+        [
+          131,
+          106
+        ],
+        [
+          180,
+          137
+        ],
+        [
+          199,
+          151
+        ]
+      ]
+    },
+    {
+      "par": 3,
+      "yards": 212,
+      "route": [
+        [
+          184,
+          108
+        ],
+        [
+          237,
+          128
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 411,
+      "route": [
+        [
+          289,
+          124
+        ],
+        [
+          306,
+          81
+        ],
+        [
+          337,
+          67
+        ],
+        [
+          379,
+          54
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 282,
+      "route": [
+        [
+          388,
+          69
+        ],
+        [
+          360,
+          92
+        ],
+        [
+          337,
+          116
+        ],
+        [
+          323,
+          133
+        ]
+      ]
+    },
+    {
+      "par": 3,
+      "yards": 142,
+      "route": [
+        [
+          336,
+          135
+        ],
+        [
+          379,
+          123
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 392,
+      "route": [
+        [
+          399,
+          101
+        ],
+        [
+          409,
+          145
+        ],
+        [
+          430,
+          198
+        ]
+      ]
+    },
+    {
+      "par": 5,
+      "yards": 481,
+      "route": [
+        [
+          418,
+          205
+        ],
+        [
+          382,
+          178
+        ],
+        [
+          343,
+          156
+        ],
+        [
+          312,
+          147
+        ]
+      ]
+    }
+  ],
+  "tag": "18 holes with routes traced from the supplied course map. Terrain is approximate."
+}

@@ -15,6 +15,7 @@ A cheeky, pick-up-and-play golf game for the browser. One self-contained HTML pa
 ```
 node build.mjs        # writes dist/index.html
 node test/sim.mjs     # headless rounds in every format on every course
+node test/routes.mjs  # mapped hole routes, doglegs and landing corridors
 ```
 
 Open `dist/index.html` in a browser to play. The Course Forger's Claude-backed parts (screenshot survey, description layout) and cross-device saves only light up when the page is published as a Claude artifact
@@ -36,6 +37,8 @@ node tools/scorecard-course.mjs --all
 
 Imported courses live in `courses/*.json` and are compiled into `src/js/02b-real-courses.js` (generated; don't edit it).
 Map data © OpenStreetMap contributors, ODbL.
+
+Magpie, High Trees, Rabbit Warren and Darkerthanusual Heath use routes traced from the supplied course overview maps. Their editable configurations are in `courses/scorecards/`; rebuild with `node tools/scorecard-course.mjs --all`. A hole's `route` is an ordered list of `[x, y]` image points from tee to green, including each bend. The generator rotates the opening shot upwards and scales the route to the existing card yardage, then creates the fairway along it. These are approximate playable reconstructions: widths, bunkers, trees and water shapes are illustrative rather than surveyed terrain. Rabbit Warren keeps nine physical holes, matching the map's paired 1/10–9/18 numbering.
 
 ## Publishing on itch.io
 

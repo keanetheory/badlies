@@ -1,0 +1,362 @@
+{
+  "id": "darkerthanusual-heath",
+  "name": "Darkerthanusual Heath",
+  "club": "darker",
+  "theme": "lush",
+  "tee": "existing game",
+  "sources": [
+    "Map data © OpenStreetMap contributors, ODbL",
+    "Pars and yardages retained from the existing imported course.",
+    "User-supplied course overview, 2026-11-17. Tee-to-green route points use image pixels; widths and hazards are illustrative, not a surveyed recreation."
+  ],
+  "defaults": {
+    "width": "normal",
+    "bunkers": 2,
+    "fbunkers": 1,
+    "trees": 1
+  },
+  "holes": [
+    {
+      "par": 5,
+      "yards": 489,
+      "route": [
+        [
+          26,
+          35
+        ],
+        [
+          91,
+          40
+        ],
+        [
+          166,
+          36
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 388,
+      "route": [
+        [
+          181,
+          35
+        ],
+        [
+          244,
+          34
+        ],
+        [
+          290,
+          43
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 431,
+      "route": [
+        [
+          311,
+          68
+        ],
+        [
+          345,
+          52
+        ],
+        [
+          371,
+          31
+        ]
+      ]
+    },
+    {
+      "par": 3,
+      "yards": 199,
+      "route": [
+        [
+          362,
+          105
+        ],
+        [
+          359,
+          175
+        ],
+        [
+          355,
+          262
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 359,
+      "route": [
+        [
+          358,
+          279
+        ],
+        [
+          301,
+          264
+        ],
+        [
+          221,
+          269
+        ]
+      ]
+    },
+    {
+      "par": 5,
+      "yards": 467,
+      "route": [
+        [
+          224,
+          254
+        ],
+        [
+          274,
+          237
+        ],
+        [
+          315,
+          234
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 373,
+      "route": [
+        [
+          326,
+          229
+        ],
+        [
+          333,
+          193
+        ],
+        [
+          340,
+          145
+        ]
+      ]
+    },
+    {
+      "par": 3,
+      "yards": 153,
+      "route": [
+        [
+          304,
+          89
+        ],
+        [
+          220,
+          89
+        ],
+        [
+          150,
+          97
+        ]
+      ],
+      "water": "left"
+    },
+    {
+      "par": 4,
+      "yards": 359,
+      "route": [
+        [
+          143,
+          108
+        ],
+        [
+          107,
+          104
+        ],
+        [
+          49,
+          87
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 348,
+      "route": [
+        [
+          24,
+          55
+        ],
+        [
+          92,
+          71
+        ],
+        [
+          149,
+          61
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 372,
+      "route": [
+        [
+          173,
+          61
+        ],
+        [
+          244,
+          67
+        ],
+        [
+          298,
+          81
+        ],
+        [
+          326,
+          115
+        ]
+      ]
+    },
+    {
+      "par": 3,
+      "yards": 175,
+      "route": [
+        [
+          325,
+          127
+        ],
+        [
+          313,
+          161
+        ],
+        [
+          301,
+          211
+        ]
+      ]
+    },
+    {
+      "par": 5,
+      "yards": 542,
+      "route": [
+        [
+          292,
+          222
+        ],
+        [
+          212,
+          239
+        ],
+        [
+          116,
+          249
+        ]
+      ]
+    },
+    {
+      "par": 4,
+      "yards": 376,
+      "route": [
+        [
+          116,
+          222
+        ],
+        [
+          163,
+          216
+        ],
+        [
+          204,
+          210
+        ]
+      ],
+      "water": "left"
+    },
+    {
+      "par": 4,
+      "yards": 346,
+      "route": [
+        [
+          235,
+          209
+        ],
+        [
+          268,
+          190
+        ],
+        [
+          285,
+          161
+        ],
+        [
+          292,
+          143
+        ]
+      ],
+      "water": "left"
+    },
+    {
+      "par": 3,
+      "yards": 165,
+      "route": [
+        [
+          278,
+          160
+        ],
+        [
+          204,
+          183
+        ],
+        [
+          119,
+          200
+        ]
+      ],
+      "water": "cross"
+    },
+    {
+      "par": 4,
+      "yards": 425,
+      "route": [
+        [
+          115,
+          177
+        ],
+        [
+          171,
+          160
+        ],
+        [
+          228,
+          145
+        ],
+        [
+          274,
+          143
+        ]
+      ],
+      "water": "cross"
+    },
+    {
+      "par": 4,
+      "yards": 276,
+      "route": [
+        [
+          276,
+          121
+        ],
+        [
+          200,
+          128
+        ],
+        [
+          111,
+          135
+        ]
+      ]
+    }
+  ],
+  "tag": "18 holes with routes traced from the supplied course map. Terrain is approximate."
+}

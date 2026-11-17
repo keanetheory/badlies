@@ -45,12 +45,13 @@ function build(card) {
     const seed = (BL.hashStr(id) + k * 131) >>> 0, rng = mulberry(seed ^ 0x5bd1e995);
     let dog, dog2;
     if (c.shape) { if (!SHAPES[c.shape]) die(`${id} hole ${k + 1}: shape must be one of ${Object.keys(SHAPES).join(', ')}`); [dog, dog2] = SHAPES[c.shape]; }
+    else if (c.route) { dog = 0; dog2 = 0; }
     else { const b = D.bend ?? 25; dog = (rng() * 2 - 1) * b; dog2 = (rng() * 2 - 1) * b * .8; guessed.push(k + 1); }
     if (c.par === 3) { dog *= .2; dog2 = 0; }
     const width = c.width || D.width, green = c.green || D.green;
     const blurb = c.blurb ?? (c.si === 1 ? 'Stroke index 1. The hardest hole on the card.' : c.si && c.si === maxSi && maxSi > 1 ? 'The easiest hole on the card, allegedly.' : '');
-    const spec = { par: c.par, len: c.yards, name: c.name || `Hole ${k + 1}`, blurb, seed, dogleg: dog, dogleg2: dog2, water,
-      hw: WIDTH[width], greenR: GREEN[green], bunkers: c.bunkers ?? D.bunkers, fbunkers: c.fbunkers ?? D.fbunkers, trees: c.trees ?? D.trees ?? 1 };
+    const spec = { par: c.par, len: c.yards, name: c.name || `Hole ${k + 1}`, blurb, seed, dogleg: dog, dogleg2: dog2, water, route: c.route,
+      hw: WIDTH[width], greenR: GREEN[green], bunkers: c.bunkers ?? D.bunkers, fbunkers: c.fbunkers ?? D.fbunkers, bunkerPlacements: c.bunkerPlacements, trees: c.trees ?? D.trees ?? 1 };
     for (const k2 of Object.keys(spec)) if (spec[k2] === undefined) delete spec[k2];
     specs.push(spec);
     return BL.makeHole({ ...spec });

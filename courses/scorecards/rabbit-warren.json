@@ -6,7 +6,8 @@
   "tee": "White",
   "sources": [
     "Eltham Warren Golf Club: white-tee card from GolfPass (9 holes, played twice for 18)",
-    "Character: James Braid parkland from 1890 on a compact site, so tight and tree-lined"
+    "Character: James Braid parkland from 1890 on a compact site, so tight and tree-lined",
+    "User-supplied course overview, 2026-11-17. Tee-to-green route points use image pixels; widths and hazards are illustrative, not a surveyed recreation."
   ],
   "defaults": {
     "width": "narrow",
@@ -19,47 +20,184 @@
     {
       "par": 3,
       "yards": 133,
-      "si": 17
+      "si": 17,
+      "route": [
+        [
+          204,
+          1203
+        ],
+        [
+          207,
+          1063
+        ]
+      ]
     },
     {
       "par": 4,
       "yards": 338,
-      "si": 13
+      "si": 13,
+      "route": [
+        [
+          248,
+          1102
+        ],
+        [
+          346,
+          927
+        ],
+        [
+          464,
+          769
+        ]
+      ]
     },
     {
       "par": 4,
       "yards": 352,
-      "si": 7
+      "si": 7,
+      "route": [
+        [
+          371,
+          1155
+        ],
+        [
+          402,
+          1004
+        ],
+        [
+          473,
+          809
+        ]
+      ],
+      "water": "right"
     },
     {
       "par": 4,
       "yards": 450,
-      "si": 1
+      "si": 1,
+      "route": [
+        [
+          477,
+          992
+        ],
+        [
+          535,
+          808
+        ],
+        [
+          566,
+          667
+        ],
+        [
+          690,
+          520
+        ]
+      ]
     },
     {
       "par": 4,
       "yards": 298,
-      "si": 15
+      "si": 15,
+      "route": [
+        [
+          637,
+          496
+        ],
+        [
+          586,
+          360
+        ],
+        [
+          546,
+          253
+        ],
+        [
+          559,
+          137
+        ]
+      ],
+      "water": "front"
     },
     {
       "par": 4,
       "yards": 406,
-      "si": 3
+      "si": 3,
+      "route": [
+        [
+          500,
+          178
+        ],
+        [
+          507,
+          338
+        ],
+        [
+          511,
+          455
+        ],
+        [
+          375,
+          637
+        ]
+      ]
     },
     {
       "par": 3,
       "yards": 244,
-      "si": 5
+      "si": 5,
+      "route": [
+        [
+          333,
+          713
+        ],
+        [
+          474,
+          584
+        ],
+        [
+          600,
+          515
+        ]
+      ]
     },
     {
       "par": 5,
       "yards": 501,
-      "si": 9
+      "si": 9,
+      "route": [
+        [
+          673,
+          519
+        ],
+        [
+          504,
+          656
+        ],
+        [
+          408,
+          754
+        ],
+        [
+          207,
+          1005
+        ]
+      ]
     },
     {
       "par": 3,
       "yards": 193,
-      "si": 11
+      "si": 11,
+      "route": [
+        [
+          175,
+          1009
+        ],
+        [
+          116,
+          1156
+        ]
+      ]
     }
-  ]
+  ],
+  "tag": "9 holes with routes traced from the supplied course map. Terrain is approximate."
 }

@@ -21,7 +21,16 @@ function makeHole(o) {
   const len = o.len || { 3: lerp(125, 172, rng()), 4: lerp(330, 425, rng()), 5: lerp(480, 540, rng()) }[par];
   const dog = o.dogleg || 0, dog2 = o.dogleg2 || 0;
   let ctrl;
-  if (par === 3) ctrl = [{ x: 0, y: 0 }, { x: dog * .3, y: -len * .5 }, { x: dog, y: -len }];
+  if (o.route) {
+    // Survey points run tee-to-green in screenshot coordinates. Rotate the opening
+    // shot upwards, preserving handedness and every bend; scale to card yards below.
+    if (o.route.length < 2 || o.route.some(p => !Array.isArray(p) || p.length !== 2 || !p.every(Number.isFinite))) throw new Error('Invalid hole route');
+    const [tx, ty] = o.route[0], [nx, ny] = o.route[1];
+    const a = -Math.PI / 2 - Math.atan2(ny - ty, nx - tx);
+    ctrl = o.route.map(([x, y]) => ({ x: (x - tx) * Math.cos(a) - (y - ty) * Math.sin(a), y: (x - tx) * Math.sin(a) + (y - ty) * Math.cos(a) }));
+    if (ctrl.some((p, i) => i && dist(p, ctrl[i - 1]) < .001)) throw new Error('Repeated hole route point');
+  }
+  else if (par === 3) ctrl = [{ x: 0, y: 0 }, { x: dog * .3, y: -len * .5 }, { x: dog, y: -len }];
   else if (par === 4) ctrl = [{ x: 0, y: 0 }, { x: dog * .04, y: -len * .3 }, { x: dog * .3, y: -len * .58 }, { x: dog, y: -len * .9 }];
   else ctrl = [{ x: 0, y: 0 }, { x: dog * .08, y: -len * .24 }, { x: dog * .8, y: -len * .5 }, { x: dog + dog2 * .3, y: -len * .74 }, { x: dog + dog2, y: -len * .96 }];
   let path = catmullRom(ctrl, 4), L = cumLen(path);
@@ -73,6 +82,12 @@ function makeHole(o) {
     const q = normalAt(d), side = rng() < .5 ? 1 : -1, off = hwAt(d) + 4;
     const c = { x: q.p.x + q.nx * side * off, y: q.p.y + q.ny * side * off };
     if (!wet(c)) h.bunkers.push(blob(c.x, c.y, lerp(5, 7, rng()), lerp(8, 12, rng()), rng, 16, .2, q.ang + Math.PI / 2));
+  }
+  // Hand-placed approach bunkers: offsets from the green centre in yards,
+  // in the displayed hole orientation. A separate RNG preserves existing hazards.
+  const placedRng = mulberry32(o.seed ^ 0x51b00b);
+  for (const b of o.bunkerPlacements || []) {
+    h.bunkers.push(blob(gc.x + b.x, gc.y + b.y, b.rx, b.ry, placedRng, 16, .16, b.angle || 0));
   }
   return finalizeHole(h);
 }

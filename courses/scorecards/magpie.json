@@ -6,7 +6,8 @@
   "tee": "Yellow",
   "sources": [
     "Bromley Golf Club / Bromley Golf Centre, Magpie Hall Lane: yellow-tee card from golfingrecord.com, total 2,617 yd matching Golfshake's yellow nine",
-    "Character from Golfshake reviews: flat, short, wide forgiving fairways, small greens, heavy rough, one par 5"
+    "Character from Golfshake reviews: flat, short, wide forgiving fairways, small greens, heavy rough, one par 5",
+    "User-supplied course overview, 2026-11-17. Tee-to-green route points use image pixels; widths and hazards are illustrative, not a surveyed recreation."
   ],
   "defaults": {
     "width": "wide",
@@ -20,47 +21,197 @@
     {
       "par": 4,
       "yards": 260,
-      "si": 17
+      "si": 17,
+      "route": [
+        [
+          602,
+          1393
+        ],
+        [
+          465,
+          1185
+        ],
+        [
+          408,
+          991
+        ]
+      ]
     },
     {
       "par": 4,
       "yards": 272,
-      "si": 9
+      "si": 9,
+      "route": [
+        [
+          310,
+          965
+        ],
+        [
+          245,
+          705
+        ],
+        [
+          173,
+          478
+        ]
+      ]
     },
     {
       "par": 3,
       "yards": 154,
-      "si": 11
+      "si": 11,
+      "route": [
+        [
+          430,
+          585
+        ],
+        [
+          217,
+          440
+        ]
+      ]
     },
     {
       "par": 4,
       "yards": 323,
-      "si": 5
+      "si": 5,
+      "route": [
+        [
+          426,
+          444
+        ],
+        [
+          745,
+          351
+        ],
+        [
+          912,
+          509
+        ]
+      ],
+      "water": "right"
     },
     {
       "par": 3,
       "yards": 138,
-      "si": 7
+      "si": 7,
+      "route": [
+        [
+          1038,
+          584
+        ],
+        [
+          968,
+          347
+        ]
+      ],
+      "water": "left"
     },
     {
       "par": 5,
       "yards": 465,
-      "si": 15
+      "si": 15,
+      "route": [
+        [
+          1042,
+          317
+        ],
+        [
+          684,
+          220
+        ],
+        [
+          462,
+          271
+        ],
+        [
+          344,
+          429
+        ]
+      ]
     },
     {
       "par": 4,
       "yards": 351,
-      "si": 1
+      "si": 1,
+      "route": [
+        [
+          377,
+          470
+        ],
+        [
+          732,
+          608
+        ],
+        [
+          981,
+          788
+        ]
+      ],
+      "water": "cross"
     },
     {
       "par": 4,
       "yards": 365,
-      "si": 3
+      "si": 3,
+      "route": [
+        [
+          1031,
+          860
+        ],
+        [
+          650,
+          783
+        ],
+        [
+          408,
+          682
+        ]
+      ],
+      "water": "cross"
     },
     {
       "par": 4,
       "yards": 289,
-      "si": 13
+      "si": 13,
+      "route": [
+        [
+          355,
+          704
+        ],
+        [
+          421,
+          895
+        ],
+        [
+          520,
+          992
+        ]
+      ],
+      "bunkerPlacements": [
+        {
+          "x": 10,
+          "y": 30,
+          "rx": 5.5,
+          "ry": 2.8,
+          "angle": -0.35
+        },
+        {
+          "x": 31,
+          "y": 30,
+          "rx": 5.5,
+          "ry": 2.5,
+          "angle": -0.5
+        },
+        {
+          "x": 23,
+          "y": 39,
+          "rx": 5.3,
+          "ry": 2.5,
+          "angle": -0.3
+        }
+      ]
     }
-  ]
+  ],
+  "tag": "9 holes with routes traced from the supplied course map. Terrain is approximate."
 }
